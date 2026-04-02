@@ -79,7 +79,7 @@ Item {
         animatedTotalSeconds = totalSeconds;
     }
 
-    // --- NEW: UI NAVIGATION FOCUS STATES ---
+    // --- ENHANCED UI NAVIGATION FOCUS STATES ---
     property real weekViewFocus: window.isWeekView ? 1.0 : 0.0
     Behavior on weekViewFocus {
         NumberAnimation { duration: 550; easing.type: Easing.OutExpo }
@@ -200,24 +200,26 @@ Item {
         }
         window.maxWeekHour = mwh;
 
-        let maxHourVal = -1;
-        let peakH = 0;
-        for (let h = 0; h < 24; h++) {
-            if (hourSums[h] > maxHourVal) {
-                maxHourVal = hourSums[h];
-                peakH = h;
+        // Custom Peak Hours Block Calculation (One UI Style)
+        let max2HourVal = -1;
+        let peakStart = 0;
+        for (let h = 0; h < 23; h++) {
+            let current2H = hourSums[h] + hourSums[h+1];
+            if (current2H > max2HourVal) {
+                max2HourVal = current2H;
+                peakStart = h;
             }
         }
         
-        function formatHour(h) {
-            return h.toString().padStart(2, '0') + ":00";
+        function formatAMPM(hour) {
+            let ampm = hour >= 12 ? 'PM' : 'AM';
+            let h12 = hour % 12;
+            h12 = h12 ? h12 : 12;
+            return h12 + ' ' + ampm;
         }
         
-        // Use exact minute strings from backend if available, otherwise fallback to 24h fallback logic
-        if (data.peak_usage_str && data.peak_usage_str !== "N/A") {
-            window.peakUsageHours = data.peak_usage_str;
-        } else if (maxHourVal > 0) {
-            window.peakUsageHours = formatHour(peakH) + " - " + formatHour((peakH + 1) % 24);
+        if (max2HourVal > 0) {
+            window.peakUsageHours = formatAMPM(peakStart) + " - " + formatAMPM(peakStart + 2);
         } else {
             window.peakUsageHours = "N/A";
         }
@@ -665,6 +667,7 @@ Item {
                         opacity: 1.0 - window.weekViewFocus
                         visible: opacity > 0
                         transform: Translate { x: -40 * window.weekViewFocus }
+                        scale: 0.95 + (0.05 * (1.0 - window.weekViewFocus)) // Smooth fluid scale backward
 
                         // ==========================================
                         // 1.5 TOTAL TIME DISPLAY + AVERAGES (3 BOXES)
@@ -744,7 +747,7 @@ Item {
                                 }
                             }
 
-                            // RIGHT: vs Yesterday (2/7 weight = 200)
+                            // RIGHT: vs Yesterday Increase (2/7 weight = 200)
                             Rectangle {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
@@ -756,18 +759,18 @@ Item {
 
                                 ColumnLayout {
                                     anchors.centerIn: parent
-                                    spacing: 4
+                                    spacing: 8
                                     
                                     // Trend Row
                                     RowLayout {
                                         Layout.alignment: Qt.AlignHCenter
-                                        spacing: 6
+                                        spacing: 8
                                         visible: !(window.totalSeconds === 0 && window.yesterdaySeconds === 0) && window.totalSeconds !== window.yesterdaySeconds
                                         
                                         Text {
                                             font.family: "JetBrains Mono"
-                                            font.weight: Font.Bold
-                                            font.pixelSize: 16
+                                            font.weight: Font.Black
+                                            font.pixelSize: 28
                                             color: {
                                                 let diff = window.totalSeconds - window.yesterdaySeconds;
                                                 return diff > 0 ? window.peach : window.green;
@@ -778,7 +781,7 @@ Item {
                                         Text {
                                             font.family: "JetBrains Mono"
                                             font.weight: Font.Bold
-                                            font.pixelSize: 16
+                                            font.pixelSize: 28
                                             color: {
                                                 let diff = window.totalSeconds - window.yesterdaySeconds;
                                                 return diff > 0 ? window.peach : window.green;
@@ -799,17 +802,6 @@ Item {
                                         color: window.overlay0
                                         text: (window.totalSeconds === 0 && window.yesterdaySeconds === 0) ? "No data" : "Same time"
                                         visible: (window.totalSeconds === 0 && window.yesterdaySeconds === 0) || window.totalSeconds === window.yesterdaySeconds
-                                    }
-
-                                    // Subtext
-                                    Text {
-                                        Layout.alignment: Qt.AlignHCenter
-                                        font.family: "JetBrains Mono"
-                                        font.weight: Font.DemiBold
-                                        font.pixelSize: 14
-                                        color: window.subtext0
-                                        text: "vs yesterday"
-                                        visible: !(window.totalSeconds === 0 && window.yesterdaySeconds === 0)
                                     }
                                 }
                             }
@@ -1007,6 +999,7 @@ Item {
                                     opacity: 1.0 - window.appViewFocus
                                     visible: opacity > 0
                                     transform: Translate { x: -30 * window.appViewFocus }
+                                    scale: 0.95 + (0.05 * (1.0 - window.appViewFocus)) // Native slide-and-scale
 
                                     model: appListModel
                                     interactive: true 
@@ -1127,6 +1120,7 @@ Item {
                                     opacity: window.appViewFocus
                                     visible: opacity > 0
                                     transform: Translate { x: 30 * (1 - window.appViewFocus) }
+                                    scale: 0.95 + (0.05 * window.appViewFocus) // Native slide-and-scale zoom in
 
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
@@ -1202,11 +1196,10 @@ Item {
                         opacity: window.weekViewFocus
                         visible: opacity > 0
                         transform: Translate { x: 40 * (1 - window.weekViewFocus) }
+                        scale: 0.95 + (0.05 * window.weekViewFocus) // Fluid zoom in on activation
 
                         // ─────────────────────────────────────────
                         // Week Heatmap Card
-                        // Layout: RowLayout (heatmap | stats)
-                        //         X-axis below the heatmap
                         // ─────────────────────────────────────────
                         Rectangle {
                             Layout.fillWidth: true
@@ -1258,7 +1251,7 @@ Item {
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
 
-                                                // Clip wrapper for rounded edges on the unified bar
+                                                // Clip wrapper for rounded edges on the unified continuous bar
                                                 Rectangle {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
@@ -1276,9 +1269,19 @@ Item {
                                                                 Layout.fillWidth: true
                                                                 Layout.fillHeight: true
                                                                 radius: 0
+                                                                
                                                                 property real val: (window.weekHeatmapData[dayIndex] && window.weekHeatmapData[dayIndex][index]) ? window.weekHeatmapData[dayIndex][index] : 0
+                                                                property real intensity: Math.min(1.0, 0.2 + 0.8 * (val / Math.max(window.maxWeekHour, 1)))
+                                                                color: val === 0 ? window.surface0 : Qt.rgba(window.mauve.r, window.mauve.g, window.mauve.b, intensity)
 
-                                                                color: val === 0 ? window.surface0 : Qt.rgba(window.mauve.r, window.mauve.g, window.mauve.b, Math.min(1.0, 0.2 + 0.8 * (val / Math.max(window.maxWeekHour, 1))))
+                                                                // Staggered animated popup matrix effect for the heatmap cells
+                                                                scale: window.isWeekView ? 1.0 : 0.5
+                                                                Behavior on scale {
+                                                                    NumberAnimation {
+                                                                        duration: 400 + (dayIndex * 30) + (index * 10)
+                                                                        easing.type: Easing.OutBack
+                                                                    }
+                                                                }
                                                                 Behavior on color { ColorAnimation { duration: 600; easing.type: Easing.OutQuint } }
 
                                                                 MouseArea {
@@ -1297,7 +1300,7 @@ Item {
 
                                     // RIGHT: Daily avg + Peak hours stats column
                                     ColumnLayout {
-                                        Layout.preferredWidth: 20
+                                        Layout.preferredWidth: 17
                                         Layout.fillHeight: true
                                         spacing: 12
 

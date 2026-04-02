@@ -198,18 +198,17 @@ local function setup_server(server_name, config)
   final_config.capabilities = vim.tbl_deep_extend("force", final_config.capabilities or {}, capabilities)
 
   vim.api.nvim_create_autocmd("FileType", {
-    pattern = final_config.filetypes,
-    callback = function(args)
-      local root_dir = final_config.root_dir
-      if type(root_dir) == 'function' then
-        root_dir = root_dir(args.file)
-      end
-      if not root_dir then
-         root_dir = vim.fs.dirname(args.file)
-      end
-      final_config.root_dir = root_dir
-      vim.lsp.start(final_config)
-    end,
+     pattern = final_config.filetypes,
+     callback = function(args)
+	local instance_config = vim.tbl_deep_extend("force", {}, final_config)
+	local root_dir = final_config.root_dir
+	if type(root_dir) == "function" then
+		root_dir = root_dir(args.file)
+    	end
+    	instance_config.root_dir = root_dir or vim.fs.dirname(args.file)
+
+    	vim.lsp.start(instance_config)
+     end,
   })
 end
 
