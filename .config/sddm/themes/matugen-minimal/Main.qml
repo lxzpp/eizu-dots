@@ -1,7 +1,7 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
-import QtGraphicalEffects 1.15
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Effects
 
 Rectangle {
     id: root
@@ -21,10 +21,12 @@ Rectangle {
             visible: false 
         }
 
-        FastBlur {
+        MultiEffect {
             anchors.fill: bgWallpaper
             source: bgWallpaper
-            radius: 64
+            blurEnabled: true
+            blurMax: 64
+            blur: 1.0
         }
         
         Rectangle {
