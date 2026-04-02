@@ -64,7 +64,7 @@ done
 # ------------------------------------------------------------------------------
 
 # Reload Kitty instances
-killall -USR1 .kitty
+killall -USR1 kitty
 
 # Reload CAVA
 if pgrep -x "cava" > /dev/null; then

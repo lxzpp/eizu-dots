@@ -64,6 +64,119 @@ Item {
     ]
 
     // -------------------------------------------------------------------------
+    // GLOBAL ACTION: APPLY WALLPAPER
+    // -------------------------------------------------------------------------
+    function applyWallpaper(safeFileName, isVideo) {
+        if (!safeFileName) return;
+        
+        window.targetWallName = safeFileName
+        let cleanName = window.getCleanName(safeFileName)
+        let reloadScript = Qt.resolvedUrl("matugen_reload.sh").toString()
+        
+        if (reloadScript.startsWith("file://")) {
+            reloadScript = decodeURIComponent(reloadScript.substring(7))
+        }
+
+        // Strictly safe variable escaping to prevent bash injection breaks on files with spaces, ' or characters
+        const escapeBash = (str) => String(str).replace(/(["\\$`])/g, '\\$1');
+        
+        if (window.currentFilter === "Search" && window.hasSearched) {
+            let alreadyExists = window.isDownloaded(safeFileName);
+            let destFile = window.srcDir + "/" + safeFileName;
+            let finalThumb = decodeURIComponent(window.thumbDir.replace("file://", "")) + "/" + safeFileName;
+            let tempThumb = decodeURIComponent(window.searchDir.replace("file://", "")) + "/" + safeFileName;
+            let mapFile = Quickshell.env("HOME") + "/.cache/wallpaper_picker/search_map.txt";
+            const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)];
+
+            if (alreadyExists) {
+                const applyScript = `
+                    export DEST_FILE="${escapeBash(destFile)}"
+                    export FINAL_THUMB="${escapeBash(finalThumb)}"
+                    export RELOAD_SCRIPT="${escapeBash(reloadScript)}"
+                    
+                    (
+                        cp "$DEST_FILE" /tmp/lock_bg.png
+                        pkill mpvpaper || true
+                        swww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 &
+                        matugen image "$FINAL_THUMB" --source-color-index 0 && bash "$RELOAD_SCRIPT"
+                    ) >/dev/null 2>&1 & disown
+                `;
+                Quickshell.execDetached(["bash", "-c", applyScript]);
+            } else {
+                window.isDownloadingWallpaper = true;
+                window.currentDownloadName = safeFileName;
+
+                const downloadScript = `
+                    export SAFE_NAME="${escapeBash(safeFileName)}"
+                    export DEST_FILE="${escapeBash(destFile)}"
+                    export FINAL_THUMB="${escapeBash(finalThumb)}"
+                    export TEMP_THUMB="${escapeBash(tempThumb)}"
+                    export RELOAD_SCRIPT="${escapeBash(reloadScript)}"
+                    export MAP_FILE="${escapeBash(mapFile)}"
+                    
+                    (
+                        URL=$(awk -F'|' -v fname="$SAFE_NAME" '$1 == fname {print $2; exit}' "$MAP_FILE")
+                        if [ -n "$URL" ]; then
+                            curl -s -L -A "Mozilla/5.0" "$URL" -o "$DEST_FILE.tmp"
+                            
+                            if file "$DEST_FILE.tmp" | grep -iq "webp"; then
+                                magick "$DEST_FILE.tmp" "$DEST_FILE"
+                                rm -f "$DEST_FILE.tmp"
+                            else
+                                mv "$DEST_FILE.tmp" "$DEST_FILE"
+                            fi
+                            
+                            cp "$TEMP_THUMB" "$FINAL_THUMB"
+                            magick "$DEST_FILE" -resize x420 -quality 70 "$FINAL_THUMB"
+                            cp "$DEST_FILE" /tmp/lock_bg.png
+                            
+                            pkill mpvpaper || true
+                            swww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 &
+                            matugen image "$FINAL_THUMB" --source-color-index 0 && bash "$RELOAD_SCRIPT"
+                        fi
+                    ) >/dev/null 2>&1 & disown
+                `;
+                Quickshell.execDetached(["bash", "-c", downloadScript]);
+            }
+            return;
+        }
+
+        const originalFile = window.srcDir + "/" + cleanName
+        const thumbFile = Quickshell.env("HOME") + "/.cache/wallpaper_picker/thumbs/" + safeFileName 
+        
+        let wallpaperCmd = ""
+        let lockBgCmd = ""
+        
+        const escOriginal = escapeBash(originalFile);
+        const escThumb = escapeBash(thumbFile);
+        const escReload = escapeBash(reloadScript);
+
+        if (isVideo) {
+            wallpaperCmd = `mpvpaper -o 'loop --no-audio --hwdec=auto --profile=high-quality --video-sync=display-resample --interpolation --tscale=oversample' '*' "$WALL_FILE"`
+            lockBgCmd = `cp "$THUMB_FILE" /tmp/lock_bg.png`
+        } else {
+            const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)]
+            wallpaperCmd = `swww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1`
+            lockBgCmd = `cp "$WALL_FILE" /tmp/lock_bg.png`
+        }
+
+        const fullScript = `
+            export WALL_FILE="${escOriginal}"
+            export THUMB_FILE="${escThumb}"
+            export RELOAD_SCRIPT="${escReload}"
+            
+            (
+                ${lockBgCmd}
+                pkill mpvpaper || true
+                ${wallpaperCmd} &
+                matugen image "$THUMB_FILE" --source-color-index 0 && bash "$RELOAD_SCRIPT"
+            ) >/dev/null 2>&1 & disown
+        `
+        Quickshell.execDetached(["bash", "-c", fullScript])
+        Quickshell.execDetached(["bash", "-c", "echo 'close' > /tmp/qs_widget_state"])
+    }
+
+    // -------------------------------------------------------------------------
     // PERSISTENT SETTINGS
     // -------------------------------------------------------------------------
     Settings {
@@ -644,7 +757,16 @@ Item {
     Shortcut { 
         sequence: "Return"
         enabled: !searchInput.activeFocus && !window.isScrollingBlocked
-        onActivated: { if (view.currentItem) view.currentItem.pickWallpaper() } 
+        onActivated: { 
+            let targetModel = window.getModelForFilter(window.currentFilter);
+            if (view.currentIndex >= 0 && view.currentIndex < targetModel.count) {
+                let fname = targetModel.get(view.currentIndex).fileName;
+                if (fname) {
+                    let isVid = String(fname).startsWith("000_");
+                    window.applyWallpaper(String(fname), isVid);
+                }
+            }
+        } 
     }
     
     Shortcut { sequence: "Escape"; onActivated: { if (window.currentFilter === "Search") { window.currentFilter = "All"; } } }
@@ -868,124 +990,6 @@ Item {
             Behavior on height { enabled: window.initialFocusSet; NumberAnimation { duration: 500; easing.type: Easing.InOutQuad } } 
             Behavior on opacity { enabled: window.initialFocusSet; NumberAnimation { duration: 500; easing.type: Easing.InOutQuad } }
 
-            function pickWallpaper() {
-                window.targetWallName = safeFileName
-                let cleanName = window.getCleanName(safeFileName)
-                let reloadScript = Qt.resolvedUrl("matugen_reload.sh").toString()
-                
-                if (reloadScript.startsWith("file://")) {
-                    reloadScript = decodeURIComponent(reloadScript.substring(7))
-                }
-
-                // Strictly safe variable escaping to prevent bash injection breaks on files with spaces, ' or characters
-                const escapeBash = (str) => String(str).replace(/(["\\$`])/g, '\\$1');
-                
-                if (window.currentFilter === "Search" && window.hasSearched) {
-                    let alreadyExists = window.isDownloaded(safeFileName);
-                    let destFile = window.srcDir + "/" + safeFileName;
-                    let finalThumb = decodeURIComponent(window.thumbDir.replace("file://", "")) + "/" + safeFileName;
-                    let tempThumb = decodeURIComponent(window.searchDir.replace("file://", "")) + "/" + safeFileName;
-                    let mapFile = Quickshell.env("HOME") + "/.cache/wallpaper_picker/search_map.txt";
-                    const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)];
-
-                    if (alreadyExists) {
-                        const applyScript = `
-                            export DEST_FILE="${escapeBash(destFile)}"
-                            export FINAL_THUMB="${escapeBash(finalThumb)}"
-                            export RELOAD_SCRIPT="${escapeBash(reloadScript)}"
-                            
-                            (
-                                cp "$DEST_FILE" /tmp/lock_bg.png
-                                pkill mpvpaper || true
-                                swww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 &
-                                matugen image "$FINAL_THUMB" --source-color-index 0 && bash "$RELOAD_SCRIPT"
-                            ) >/dev/null 2>&1 & disown
-                        `;
-                        Quickshell.execDetached(["bash", "-c", applyScript]);
-                    } else {
-                        window.isDownloadingWallpaper = true;
-                        window.currentDownloadName = safeFileName;
-
-                        const downloadScript = `
-                            export SAFE_NAME="${escapeBash(safeFileName)}"
-                            export DEST_FILE="${escapeBash(destFile)}"
-                            export FINAL_THUMB="${escapeBash(finalThumb)}"
-                            export TEMP_THUMB="${escapeBash(tempThumb)}"
-                            export RELOAD_SCRIPT="${escapeBash(reloadScript)}"
-                            export MAP_FILE="${escapeBash(mapFile)}"
-                            
-                            (
-                                URL=$(awk -F'|' -v fname="$SAFE_NAME" '$1 == fname {print $2; exit}' "$MAP_FILE")
-                                if [ -n "$URL" ]; then
-                                    curl -s -L -A "Mozilla/5.0" "$URL" -o "$DEST_FILE.tmp"
-                                    
-                                    if file "$DEST_FILE.tmp" | grep -iq "webp"; then
-                                        magick "$DEST_FILE.tmp" "$DEST_FILE"
-                                        rm -f "$DEST_FILE.tmp"
-                                    else
-                                        mv "$DEST_FILE.tmp" "$DEST_FILE"
-                                    fi
-                                    
-                                    cp "$TEMP_THUMB" "$FINAL_THUMB"
-                                    magick "$DEST_FILE" -resize x420 -quality 70 "$FINAL_THUMB"
-                                    cp "$DEST_FILE" /tmp/lock_bg.png
-                                    
-                                    pkill mpvpaper || true
-                                    swww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 &
-                                    matugen image "$FINAL_THUMB" --source-color-index 0 && bash "$RELOAD_SCRIPT"
-                                fi
-                            ) >/dev/null 2>&1 & disown
-                        `;
-                        Quickshell.execDetached(["bash", "-c", downloadScript]);
-                    }
-                    return;
-                }
-
-                const originalFile = window.srcDir + "/" + cleanName
-                const thumbFile = Quickshell.env("HOME") + "/.cache/wallpaper_picker/thumbs/" + safeFileName 
-                
-                let wallpaperCmd = ""
-                let lockBgCmd = ""
-                
-                const escOriginal = escapeBash(originalFile);
-                const escThumb = escapeBash(thumbFile);
-                const escReload = escapeBash(reloadScript);
-
-                if (isVideo) {
-                    wallpaperCmd = `mpvpaper -o 'loop --no-audio --hwdec=auto --profile=high-quality --video-sync=display-resample --interpolation --tscale=oversample' '*' "$WALL_FILE"`
-                    lockBgCmd = `cp "$THUMB_FILE" /tmp/lock_bg.png`
-                } else {
-                    const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)]
-                    wallpaperCmd = `swww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1`
-                    lockBgCmd = `cp "$WALL_FILE" /tmp/lock_bg.png`
-                }
-
-                const fullScript = `
-                    export WALL_FILE="${escOriginal}"
-                    export THUMB_FILE="${escThumb}"
-                    export RELOAD_SCRIPT="${escReload}"
-                    
-                    (
-                        ${lockBgCmd}
-                        pkill mpvpaper || true
-                        ${wallpaperCmd} &
-                        matugen image "$THUMB_FILE" --source-color-index 0 && bash "$RELOAD_SCRIPT"
-                    ) >/dev/null 2>&1 & disown
-                `
-                Quickshell.execDetached(["bash", "-c", fullScript])
-                Quickshell.execDetached(["bash", "-c", "echo 'close' > /tmp/qs_widget_state"])
-            }
-
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: delegateRoot.matchesFilter && !window.isScrollingBlocked
-                onClicked: {
-                    view.currentIndex = index
-                    delegateRoot.pickWallpaper()
-                }
-            }
-
             Item {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: ((window.itemHeight - height) / 2) * window.skewFactor
@@ -996,6 +1000,17 @@ Item {
                 transform: Matrix4x4 {
                     property real s: window.skewFactor
                     matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+                }
+                
+                // Moved MouseArea inside the transformed Item so its hit-box inherits the skew
+                // and perfectly matches the visual parallelograms.
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: delegateRoot.matchesFilter && !window.isScrollingBlocked
+                    onClicked: {
+                        view.currentIndex = index
+                        window.applyWallpaper(delegateRoot.safeFileName, delegateRoot.isVideo)
+                    }
                 }
 
                 Image {
