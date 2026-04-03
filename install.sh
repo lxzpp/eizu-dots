@@ -350,7 +350,8 @@ show_overview() {
     print_kb "SUPER + S" "Toggle Calendar"
     print_kb "SUPER + N" "Toggle Network"
     print_kb "SUPER + SHIFT + T" "Toggle FocusTime"
-    print_kb "SUPER + SHIFT + S" "Toggle Stewart"
+    print_kb "SUPER + SHIFT + S" "Toggle Stewart (RESERVED FOR FUTURE VOICE ASSISTANT)"
+    print_kb "SUPER + V" "Toggle Volume Control"
     echo ""
 
     echo -e "${BOLD}${C_BLUE}--- Window Management ---${RESET}"

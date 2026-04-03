@@ -95,11 +95,11 @@ PanelWindow {
     }
 
     // ==========================================
-    // DATA FETCHING (EVENT-DRIVEN WAITERS)
+    // DATA FETCHING 
     // ==========================================
 
     // Workspaces --------------------------------
-    // 1. The continuous background daemon (writes to tmp file instantly via socat)
+    // 1. The continuous background daemon
     Process {
         id: wsDaemon
         command: ["bash", "-c", "~/.config/hypr/scripts/quickshell/workspaces.sh > /tmp/qs_workspaces.json"]
@@ -137,7 +137,7 @@ PanelWindow {
         }
     }
 
-    // 3. Ultra-fast 50ms loop. Zero complex logic overhead, feels completely instant.
+    // 3. Ultra-fast 50ms loop.
     Timer { 
         interval: 50 
         running: true 
@@ -211,8 +211,7 @@ PanelWindow {
         stdout: StdioCollector {
             onStreamFinished: sysPoller.running = true
         }
-    }    // Kickoff the initial fetch
-    Timer { interval: 100; running: true; repeat: false; onTriggered: sysPoller.running = true }
+    }
 
     // Weather remains a slow poll since it fetches from web
     Process {
@@ -422,7 +421,6 @@ PanelWindow {
                                 font.pixelSize: 14
                                 font.weight: stateLabel === "active" ? Font.Black : (stateLabel === "occupied" ? Font.Bold : Font.Medium)
                                 
-                                // UPDATED: Now uses mocha.crust on hover for sharp contrast against the bright background
                                 color: stateLabel === "active" 
                                         ? mocha.crust 
                                         : (isHovered 
@@ -440,10 +438,9 @@ PanelWindow {
                         }
                     }
                 }
-        }            
+            }            
 
-        // Media Player 
-
+            // Media Player 
             Rectangle {
                 id: mediaBox
                 color: Qt.rgba(mocha.base.r, mocha.base.g, mocha.base.b, 0.75)
