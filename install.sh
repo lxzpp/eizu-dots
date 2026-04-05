@@ -30,7 +30,7 @@ C_MAGENTA="\e[35m"
 # ==============================================================================
 # Global Variables & Initial States
 # ==============================================================================
-WALLPAPER_DIR="$HOME/Images/Wallpapers"
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 WEATHER_API_KEY=""
 WEATHER_CITY_ID=""
 WEATHER_UNIT=""
