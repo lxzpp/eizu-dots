@@ -14,8 +14,5 @@ if [ -n "$file" ]; then
     matugen image "$file" --source-color-index 0 
 fi
 
-# Launch the guide widget (runs only once because of the flag below)
-bash ~/.config/hypr/scripts/qs_manager.sh guide &
-
 mkdir -p "$(dirname "$FLAG")"
 touch "$FLAG"
