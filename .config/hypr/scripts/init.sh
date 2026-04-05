@@ -3,10 +3,23 @@
 FLAG="$HOME/.cache/wallpaper_initialized"
 RELOAD_SCRIPT_PATH="$HOME/.config/hypr/scripts/quickshell/wallpaper/matugen_reload.sh"
 
+# If the flag exists, just run matugen and the reload script, then exit
+if [ -f "$FLAG" ]; then
+    # Use the cached wallpaper image for matugen
+    if [ -f "/tmp/lock_bg.png" ]; then
+        matugen image "/tmp/lock_bg.png" --source-color-index 0
+    fi
+    
+    if [ -f "$RELOAD_SCRIPT_PATH" ]; then
+        chmod +x "$RELOAD_SCRIPT_PATH"
+        bash "$RELOAD_SCRIPT_PATH"
+    fi
+    
+    exit 0
+fi
+
 # If no wallpaper dir is set, default to a common one to prevent find from failing
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/Wallpapers}"
-
-[ -f "$FLAG" ] && exit 0
 
 sleep 0.5
 

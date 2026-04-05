@@ -461,8 +461,7 @@ Item {
                     id: coreContainer
                     
                     property bool hasDevice: window.currentCore !== null
-                    property real activeTransition: window.introState >= 1.0 ? 1.0 : 0.0
-                    Behavior on activeTransition { NumberAnimation { duration: 1400; easing.type: Easing.OutExpo } }
+                    property real activeTransition: window.introState 
 
                     width: window.currentPower ? 200 : 160
                     height: width
@@ -830,7 +829,8 @@ Item {
 
                             Timer {
                                 running: true
-                                interval: 40 + (index * 30) 
+                                // INCREASED INTERVAL: This gives the central core time to pop up first
+                                interval: 600 + (index * 80) 
                                 onTriggered: floatCardDelegateContainer.isLoaded = true
                             }
 
