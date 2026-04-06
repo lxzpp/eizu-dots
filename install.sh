@@ -697,28 +697,44 @@ done
 
 # Combine Base Packages with chosen Driver Packages
 ALL_PKGS=("${PKGS[@]}" "${DRIVER_PKGS[@]}")
+MISSING_PKGS=()
 
-# --- 1. Install Dependencies & Drivers ---
-echo -e "\n${C_CYAN}[ INFO ]${RESET} Installing System Packages & Drivers...\n"
-
+echo -e "\n${C_CYAN}[ INFO ]${RESET} Checking for already installed packages..."
 for pkg in "${ALL_PKGS[@]}"; do
     # Skip empty entries if any
     [[ -z "$pkg" ]] && continue 
 
-    echo -e "\n${C_CYAN}=================================================================${RESET}"
-    echo -e "${C_BLUE}::${RESET} ${BOLD}Installing ${pkg}...${RESET}"
-    echo -e "${C_CYAN}=================================================================${RESET}"
-    
-    # Arch: Pipe 'yes ""' (Enter keystrokes) to automatically choose the default provider (1)
-    # Limit CARGO_BUILD_JOBS to prevent OOM errors during heavy Rust compilations (like swayosd)
-    if yes "" | env CARGO_BUILD_JOBS=2 $PKG_MANAGER "$pkg"; then
-        echo -e "\n${C_GREEN}[ OK ] Successfully installed ${pkg}${RESET}"
+    # Check if package is installed locally
+    if pacman -Q "$pkg" &>/dev/null; then
+        true # Already installed, skip
     else
-        echo -e "\n${C_RED}[ FAILED ] Failed to install ${pkg}${RESET}"
-        FAILED_PKGS+=("$pkg")
+        MISSING_PKGS+=("$pkg")
     fi
-    sleep 0.5
 done
+
+# --- 1. Install Dependencies & Drivers ---
+if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
+    echo -e "  -> ${C_GREEN}All packages are already installed! Skipping package download phase.${RESET}\n"
+else
+    echo -e "  -> ${C_YELLOW}Found ${#MISSING_PKGS[@]} missing packages to install.${RESET}"
+    echo -e "\n${C_CYAN}[ INFO ]${RESET} Installing System Packages & Drivers...\n"
+
+    for pkg in "${MISSING_PKGS[@]}"; do
+        echo -e "\n${C_CYAN}=================================================================${RESET}"
+        echo -e "${C_BLUE}::${RESET} ${BOLD}Installing ${pkg}...${RESET}"
+        echo -e "${C_CYAN}=================================================================${RESET}"
+        
+        # Arch: Pipe 'yes ""' (Enter keystrokes) to automatically choose the default provider (1)
+        # Limit CARGO_BUILD_JOBS to prevent OOM errors during heavy Rust compilations (like swayosd)
+        if yes "" | env CARGO_BUILD_JOBS=2 $PKG_MANAGER "$pkg"; then
+            echo -e "\n${C_GREEN}[ OK ] Successfully installed ${pkg}${RESET}"
+        else
+            echo -e "\n${C_RED}[ FAILED ] Failed to install ${pkg}${RESET}"
+            FAILED_PKGS+=("$pkg")
+        fi
+        sleep 0.5
+    done
+fi
 
 # --- 1.5. Advanced Proprietary NVIDIA Setup (Only if explicitly selected) ---
 if [ "$HAS_NVIDIA_PROPRIETARY" = true ]; then
@@ -788,32 +804,37 @@ else
 fi
 
 echo -e "\n${C_CYAN}[ INFO ]${RESET} Fetching Wallpapers..."
-WALLPAPER_REPO="https://github.com/ilyamiro/shell-wallpapers.git"
-WALLPAPER_CLONE_DIR="/tmp/shell-wallpapers"
-
 mkdir -p "$WALLPAPER_DIR"
-if [ -d "$WALLPAPER_CLONE_DIR" ]; then
-    rm -rf "$WALLPAPER_CLONE_DIR"
-fi
 
-# Clone with a dynamic progress bar
-git clone --progress "$WALLPAPER_REPO" "$WALLPAPER_CLONE_DIR" 2>&1 | tr '\r' '\n' | while read -r line; do
-    if [[ "$line" =~ Receiving\ objects:\ *([0-9]+)% ]]; then
-        pc="${BASH_REMATCH[1]}"
-        fill=$(printf "%*s" $((pc / 2)) "" | tr ' ' '#')
-        empty=$(printf "%*s" $((50 - (pc / 2))) "" | tr ' ' '-')
-        printf "\r\033[K  -> Downloading: [%s%s] %3d%%" "$fill" "$empty" "$pc"
-    fi
-done
-echo "" # Ensure a clean new line after the progress bar finishes
-
-if [ -d "$WALLPAPER_CLONE_DIR/images" ]; then
-    cp -r "$WALLPAPER_CLONE_DIR/images/"* "$WALLPAPER_DIR/" 2>/dev/null || true
+if [ "$(ls -A "$WALLPAPER_DIR" 2>/dev/null | grep -E '\.(jpg|png|jpeg|gif|webp)$')" ]; then
+    echo -e "  -> ${C_GREEN}Wallpapers already present in $WALLPAPER_DIR. Skipping download.${RESET}"
 else
-    cp -r "$WALLPAPER_CLONE_DIR/"* "$WALLPAPER_DIR/" 2>/dev/null || true
+    WALLPAPER_REPO="https://github.com/ilyamiro/shell-wallpapers.git"
+    WALLPAPER_CLONE_DIR="/tmp/shell-wallpapers"
+
+    if [ -d "$WALLPAPER_CLONE_DIR" ]; then
+        rm -rf "$WALLPAPER_CLONE_DIR"
+    fi
+
+    # Clone with a dynamic progress bar
+    git clone --progress "$WALLPAPER_REPO" "$WALLPAPER_CLONE_DIR" 2>&1 | tr '\r' '\n' | while read -r line; do
+        if [[ "$line" =~ Receiving\ objects:\ *([0-9]+)% ]]; then
+            pc="${BASH_REMATCH[1]}"
+            fill=$(printf "%*s" $((pc / 2)) "" | tr ' ' '#')
+            empty=$(printf "%*s" $((50 - (pc / 2))) "" | tr ' ' '-')
+            printf "\r\033[K  -> Downloading: [%s%s] %3d%%" "$fill" "$empty" "$pc"
+        fi
+    done
+    echo "" # Ensure a clean new line after the progress bar finishes
+
+    if [ -d "$WALLPAPER_CLONE_DIR/images" ]; then
+        cp -r "$WALLPAPER_CLONE_DIR/images/"* "$WALLPAPER_DIR/" 2>/dev/null || true
+    else
+        cp -r "$WALLPAPER_CLONE_DIR/"* "$WALLPAPER_DIR/" 2>/dev/null || true
+    fi
+    rm -rf "$WALLPAPER_CLONE_DIR"
+    printf "  -> Wallpapers installed to %-12s ${C_GREEN}[ OK ]${RESET}\n" "$WALLPAPER_DIR"
 fi
-rm -rf "$WALLPAPER_CLONE_DIR"
-printf "  -> Wallpapers installed to %-12s ${C_GREEN}[ OK ]${RESET}\n" "$WALLPAPER_DIR"
 
 # --- 4. Copying Dotfiles & Backups ---
 echo -e "\n${C_CYAN}[ INFO ]${RESET} Applying Configurations & Backing Up Old Ones..."
@@ -902,25 +923,29 @@ if [ -d "$REPO_FONTS_DIR" ]; then
     cp -r "$REPO_FONTS_DIR/"* "$TARGET_FONTS_DIR/" 2>/dev/null || true
 fi
 
-# Iosevka Nerd Font Pack Installation
-printf "  -> Creating temporary directory... \n"
-mkdir -p /tmp/iosevka-pack
+if [ -d "$TARGET_FONTS_DIR/IosevkaNerdFont" ] && [ "$(ls -A "$TARGET_FONTS_DIR/IosevkaNerdFont" 2>/dev/null | grep -i "\.ttf")" ]; then
+    echo -e "  -> ${C_GREEN}Iosevka Nerd Fonts already installed in $TARGET_FONTS_DIR. Skipping download.${RESET}"
+else
+    # Iosevka Nerd Font Pack Installation
+    printf "  -> Creating temporary directory... \n"
+    mkdir -p /tmp/iosevka-pack
 
-printf "  -> Downloading latest full Iosevka Nerd Font pack... \n"
-curl -fLo /tmp/iosevka-pack/Iosevka.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip
+    printf "  -> Downloading latest full Iosevka Nerd Font pack... \n"
+    curl -fLo /tmp/iosevka-pack/Iosevka.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.zip
 
-printf "  -> Extracting fonts... \n"
-unzip -q /tmp/iosevka-pack/Iosevka.zip -d /tmp/iosevka-pack/
+    printf "  -> Extracting fonts... \n"
+    unzip -q /tmp/iosevka-pack/Iosevka.zip -d /tmp/iosevka-pack/
 
-printf "  -> Installing fonts to IosevkaNerdFont directory... \n"
-mkdir -p "$TARGET_FONTS_DIR/IosevkaNerdFont"
-mv /tmp/iosevka-pack/*.ttf "$TARGET_FONTS_DIR/IosevkaNerdFont/"
-sudo cp -r ~/.local/share/fonts/IosevkaNerdFont /usr/share/fonts/
+    printf "  -> Installing fonts to IosevkaNerdFont directory... \n"
+    mkdir -p "$TARGET_FONTS_DIR/IosevkaNerdFont"
+    mv /tmp/iosevka-pack/*.ttf "$TARGET_FONTS_DIR/IosevkaNerdFont/"
+    sudo cp -r "$TARGET_FONTS_DIR/IosevkaNerdFont" /usr/share/fonts/
 
-printf "  -> Cleaning up temporary files... \n"
-rm -rf /tmp/iosevka-pack
-rm -f ~/.local/share/fonts/IosevkaNerdFont/*Mono*.ttf
-rm -f "$HOME/.cache/wallpaper_initialized" # if reinstalling
+    printf "  -> Cleaning up temporary files... \n"
+    rm -rf /tmp/iosevka-pack
+    rm -f "$TARGET_FONTS_DIR/IosevkaNerdFont/"*Mono*.ttf
+    rm -f "$HOME/.cache/wallpaper_initialized" # if reinstalling
+fi
 
 # Fix permissions so fontconfig can actually read them
 find "$TARGET_FONTS_DIR" -type f -exec chmod 644 {} \; 2>/dev/null
