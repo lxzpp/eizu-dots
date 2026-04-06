@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
+import QtQuick.Window
 import QtCore
 import Quickshell
 import Quickshell.Io
@@ -8,7 +9,18 @@ import "../"
 
 Item {
     id: window
+    width: Screen.width
     focus: true
+
+    // --- Responsive Scaling Logic ---
+    Scaler {
+        id: scaler
+        currentWidth: Screen.width
+    }
+    
+    function s(val) { 
+        return scaler.s(val); 
+    }
 
     Shortcut {
         sequence: "Tab"
@@ -20,6 +32,7 @@ Item {
 
     Settings {
         id: cache
+        category: "QS_DesktopNetworkWidget"
         property string lastEthJson: ""
         property string lastAudioJson: ""
     }
@@ -283,7 +296,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 20
+            radius: window.s(20)
             color: window.base
             border.color: window.surface0
             border.width: 1
@@ -291,8 +304,8 @@ Item {
 
             Rectangle {
                 width: parent.width * 0.8; height: width; radius: width / 2
-                x: (parent.width / 2 - width / 2) + Math.cos(window.globalOrbitAngle * 2) * 150
-                y: (parent.height / 2 - height / 2) + Math.sin(window.globalOrbitAngle * 2) * 100
+                x: (parent.width / 2 - width / 2) + Math.cos(window.globalOrbitAngle * 2) * window.s(150)
+                y: (parent.height / 2 - height / 2) + Math.sin(window.globalOrbitAngle * 2) * window.s(100)
                 opacity: window.currentPower ? 0.08 : 0.02
                 color: window.currentConn ? window.activeColor : window.surface2
                 Behavior on color { ColorAnimation { duration: 1000 } }
@@ -301,8 +314,8 @@ Item {
             
             Rectangle {
                 width: parent.width * 0.9; height: width; radius: width / 2
-                x: (parent.width / 2 - width / 2) + Math.sin(window.globalOrbitAngle * 1.5) * -150
-                y: (parent.height / 2 - height / 2) + Math.cos(window.globalOrbitAngle * 1.5) * -100
+                x: (parent.width / 2 - width / 2) + Math.sin(window.globalOrbitAngle * 1.5) * window.s(-150)
+                y: (parent.height / 2 - height / 2) + Math.cos(window.globalOrbitAngle * 1.5) * window.s(-100)
                 opacity: window.currentPower ? 0.06 : 0.01
                 color: window.currentConn ? window.activeGradientSecondary : window.surface1
                 Behavior on color { ColorAnimation { duration: 1000 } }
@@ -312,7 +325,7 @@ Item {
             Item {
                 id: radarItem
                 anchors.fill: parent
-                anchors.bottomMargin: 80 
+                anchors.bottomMargin: window.s(80) 
                 opacity: window.currentPower ? 1.0 : 0.0
                 scale: window.currentPower ? 1.0 : 1.05
                 Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.InOutQuad } }
@@ -322,7 +335,7 @@ Item {
                     model: 3
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 280 + (index * 170)
+                        width: window.s(280) + (index * window.s(170))
                         height: width
                         radius: width / 2
                         color: "transparent"
@@ -339,11 +352,14 @@ Item {
             Canvas {
                 id: nodeLinesCanvas
                 anchors.fill: parent
-                anchors.bottomMargin: 80
+                anchors.bottomMargin: window.s(80)
                 z: 0 
                 opacity: (window.currentConn && window.currentPower) ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 500 } }
                 
+                property real scaleTrigger: window.s(1)
+                onScaleTriggerChanged: requestPaint()
+
                 Timer {
                     interval: 45
                     running: nodeLinesCanvas.opacity > 0.01 && window.currentPower 
@@ -360,6 +376,7 @@ Item {
                 
                 onPaint: {
                     var ctx = getContext("2d");
+                    var s = window.s;
                     ctx.clearRect(0, 0, width, height);
                     if (!window.currentConn || !window.currentPower) return;
                     
@@ -382,15 +399,15 @@ Item {
                             var dy = targetY - startY;
                             var fullDist = Math.sqrt(dx * dx + dy * dy);
                             
-                            if (fullDist < 10) return;
+                            if (fullDist < s(10)) return;
 
                             var alpha = Math.atan2(dy, dx);
                             var cosA = Math.cos(alpha);
                             var sinA = Math.sin(alpha);
                             
                             var coreVisualRadius = parentWidth / 2;
-                            var startOffset = coreVisualRadius + 5; 
-                            var endOffset = 35; 
+                            var startOffset = coreVisualRadius + s(5); 
+                            var endOffset = s(35); 
                             
                             var drawDist = fullDist - startOffset - endOffset;
                             if (drawDist <= 0) return;
@@ -403,8 +420,8 @@ Item {
                             var sY = startY + sinA * startOffset;
 
                             var distanceFactor = Math.max(0, 1.0 - (fullDist / 400.0));
-                            var dynamicLineWidthCore = 1.0 + (distanceFactor * 2.0);
-                            var dynamicLineWidthGlow = 4.0 + (distanceFactor * 4.0);
+                            var dynamicLineWidthCore = s(1.0) + (distanceFactor * s(2.0));
+                            var dynamicLineWidthGlow = s(4.0) + (distanceFactor * s(4.0));
                             var dynamicAlpha = (0.2 + (distanceFactor * 0.7)) * parentFade;
 
                             ctx.beginPath();
@@ -413,7 +430,7 @@ Item {
                                 var t = j / steps;
                                 var currentDist = drawDist * t;
                                 var envelope = Math.sin(t * Math.PI);
-                                var offset = Math.sin(tWave1 + t * 6) * 6 * envelope + ((Math.random() - 0.5) * 5.0 * distanceFactor);
+                                var offset = Math.sin(tWave1 + t * 6) * s(6) * envelope + ((Math.random() - 0.5) * s(5.0) * distanceFactor);
                                 ctx.lineTo(sX + cosA * currentDist + perpX * offset, sY + sinA * currentDist + perpY * offset);
                             }
                             ctx.lineWidth = dynamicLineWidthGlow;
@@ -432,7 +449,7 @@ Item {
                                 var tk = k / steps;
                                 var currentDistK = drawDist * tk;
                                 var envelopeK = Math.sin(tk * Math.PI);
-                                var offsetK = Math.cos(tWave2 + tk * 8) * 12 * envelopeK + ((Math.random() - 0.5) * 3.0 * distanceFactor);
+                                var offsetK = Math.cos(tWave2 + tk * 8) * s(12) * envelopeK + ((Math.random() - 0.5) * s(3.0) * distanceFactor);
                                 ctx.lineTo(sX + cosA * currentDistK + perpX * offsetK, sY + sinA * currentDistK + perpY * offsetK);
                             }
                             ctx.lineWidth = dynamicLineWidthCore * 1.5;
@@ -451,7 +468,7 @@ Item {
             Item {
                 id: orbitContainer
                 anchors.fill: parent
-                anchors.bottomMargin: 80 
+                anchors.bottomMargin: window.s(80) 
                 z: 1
 
                 // =========================================================
@@ -463,13 +480,13 @@ Item {
                     property bool hasDevice: window.currentCore !== null
                     property real activeTransition: window.introState 
 
-                    width: window.currentPower ? 200 : 160
+                    width: window.currentPower ? window.s(200) : window.s(160)
                     height: width
                     
                     anchors.centerIn: parent
                     
                     opacity: activeTransition
-                    scale: bumpScale * (0.8 + 0.2 * activeTransition)
+                    scale: centralCore.bumpScale * (0.8 + 0.2 * activeTransition)
 
                     MultiEffect {
                         source: centralCore
@@ -478,7 +495,7 @@ Item {
                         shadowColor: "#000000"
                         shadowOpacity: window.currentPower ? 0.5 : 0.0
                         shadowBlur: 1.2
-                        shadowVerticalOffset: 6
+                        shadowVerticalOffset: window.s(6)
                         z: -1
                         Behavior on shadowOpacity { NumberAnimation { duration: 600 } }
                     }
@@ -530,6 +547,7 @@ Item {
                             if (centralCore.isDangerState && window.currentConn) return window.maroon;
                             return window.currentConn ? Qt.lighter(window.activeColor, 1.1) : window.surface1;
                         }
+                        border.width: window.s(2)
                         Behavior on border.color { ColorAnimation { duration: 300 } }
                         
                         Rectangle {
@@ -546,6 +564,9 @@ Item {
                             visible: centralCore.disconnectFill > 0
                             opacity: 0.95
 
+                            property real scaleTrigger: window.s(1)
+                            onScaleTriggerChanged: requestPaint()
+
                             property real wavePhase: 0.0
                             NumberAnimation on wavePhase {
                                 running: centralCore.disconnectFill > 0.0 && centralCore.disconnectFill < 1.0
@@ -557,6 +578,7 @@ Item {
 
                             onPaint: {
                                 var ctx = getContext("2d");
+                                var s = window.s;
                                 ctx.clearRect(0, 0, width, height);
                                 if (centralCore.disconnectFill <= 0.001) return;
 
@@ -571,7 +593,7 @@ Item {
                                 ctx.beginPath();
                                 ctx.moveTo(0, fillY);
                                 if (centralCore.disconnectFill < 0.99) {
-                                    var waveAmp = 10 * Math.sin(centralCore.disconnectFill * Math.PI);
+                                    var waveAmp = s(10) * Math.sin(centralCore.disconnectFill * Math.PI);
                                     var cp1y = fillY + Math.sin(wavePhase) * waveAmp;
                                     var cp2y = fillY + Math.cos(wavePhase + Math.PI) * waveAmp;
                                     ctx.bezierCurveTo(width * 0.33, cp2y, width * 0.66, cp1y, width, fillY);
@@ -595,7 +617,7 @@ Item {
 
                         Rectangle {
                             anchors.centerIn: parent
-                            width: parent.width + 40
+                            width: parent.width + window.s(40)
                             height: width
                             radius: width / 2
                             color: centralCore.isDangerState && window.currentConn ? window.red : window.activeColor
@@ -613,12 +635,12 @@ Item {
                         
                         Rectangle {
                             anchors.centerIn: parent
-                            width: parent.width + 15
+                            width: parent.width + window.s(15)
                             height: width
                             radius: width / 2
                             color: "transparent"
                             border.color: centralCore.isDangerState ? window.red : window.activeColor
-                            border.width: 3
+                            border.width: window.s(3)
                             z: -2
                             
                             property real pulseOp: 0.0
@@ -641,7 +663,7 @@ Item {
                         // OFFLINE TEXT
                         ColumnLayout {
                             anchors.centerIn: parent
-                            spacing: 10
+                            spacing: window.s(10)
                             visible: !window.currentConn || !window.currentPower
                             opacity: visible ? 1.0 : 0.0
                             Behavior on opacity { NumberAnimation { duration: 300 } }
@@ -649,14 +671,14 @@ Item {
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 font.family: "Iosevka Nerd Font"
-                                font.pixelSize: 48
+                                font.pixelSize: window.s(48)
                                 color: window.currentPower ? window.overlay0 : window.surface2
                                 text: window.activeMode === "eth" ? "󰈂" : "󰖁"
                             }
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 font.family: "JetBrains Mono"; font.weight: Font.Bold
-                                font.pixelSize: 14
+                                font.pixelSize: window.s(14)
                                 color: window.overlay0
                                 text: window.currentPowerPending 
                                     ? ((window.activeMode === "eth" ? window.expectedEthPower : window.expectedAudioPower) === "on" ? "Powering On..." : "Powering Off...") 
@@ -674,22 +696,22 @@ Item {
                             ColumnLayout {
                                 id: baseCoreText
                                 anchors.centerIn: parent
-                                spacing: 4
+                                spacing: window.s(4)
 
                                 Text {
                                     Layout.alignment: Qt.AlignHCenter
                                     font.family: "Iosevka Nerd Font"
-                                    font.pixelSize: 48
+                                    font.pixelSize: window.s(48)
                                     color: window.crust
                                     text: coreMa.containsMouse ? (window.activeMode === "eth" ? "󰈂" : "󰖁") : (window.currentCore ? window.currentCore.icon : "")
                                     Behavior on color { ColorAnimation { duration: 200 } }
                                 }
                                 Text {
                                     Layout.alignment: Qt.AlignHCenter
-                                    Layout.maximumWidth: 150
+                                    Layout.maximumWidth: window.s(150)
                                     horizontalAlignment: Text.AlignHCenter
                                     font.family: "JetBrains Mono"; font.weight: Font.Black
-                                    font.pixelSize: 16
+                                    font.pixelSize: window.s(16)
                                     color: window.crust
                                     text: window.currentCore ? window.currentCore.name : ""
                                     elide: Text.ElideRight
@@ -697,7 +719,7 @@ Item {
                                 }
                                 Text {
                                     Layout.alignment: Qt.AlignHCenter
-                                    font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 11
+                                    font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(11)
                                     color: coreMa.containsMouse ? window.crust : "#99000000"
                                     text: centralCore.disconnectFill > 0.01 ? "Hold..." : "Connected"
                                     Behavior on color { ColorAnimation { duration: 200 } }
@@ -710,35 +732,35 @@ Item {
                                 anchors.bottom: parent.bottom
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                height: Math.min(parent.height, Math.max(0, parent.height * centralCore.disconnectFill + 8))
+                                height: Math.min(parent.height, Math.max(0, parent.height * centralCore.disconnectFill + window.s(8)))
                                 clip: true
                                 visible: centralCore.disconnectFill > 0
 
                                 ColumnLayout {
-                                    spacing: 4
+                                    spacing: window.s(4)
                                     x: waveClipItem.width / 2 - width / 2
                                     y: (centralCore.height / 2) - (height / 2) - (centralCore.height - waveClipItem.height)
 
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         font.family: "Iosevka Nerd Font"
-                                        font.pixelSize: 48
+                                        font.pixelSize: window.s(48)
                                         color: window.text
                                         text: coreMa.containsMouse ? (window.activeMode === "eth" ? "󰈂" : "󰖁") : (window.currentCore ? window.currentCore.icon : "")
                                     }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
-                                        Layout.maximumWidth: 150
+                                        Layout.maximumWidth: window.s(150)
                                         horizontalAlignment: Text.AlignHCenter
                                         font.family: "JetBrains Mono"; font.weight: Font.Black
-                                        font.pixelSize: 16
+                                        font.pixelSize: window.s(16)
                                         color: window.text
                                         text: window.currentCore ? window.currentCore.name : ""
                                         elide: Text.ElideRight
                                     }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
-                                        font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 11
+                                        font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(11)
                                         color: window.text
                                         text: centralCore.disconnectFill > 0.01 ? "Hold..." : "Connected"
                                     }
@@ -818,7 +840,7 @@ Item {
                         
                         delegate: Item {
                             id: floatCardDelegateContainer
-                            width: 170; height: 60
+                            width: window.s(170); height: window.s(60)
 
                             property bool isLoaded: false
                             opacity: isLoaded ? 1.0 : 0.0
@@ -840,17 +862,17 @@ Item {
 
                             property real currentAngle: (window.globalOrbitAngle * 1.5) + singleBaseAngle
                             
-                            property real currentRadX: 280
-                            property real currentRadY: 180
+                            property real currentRadX: window.s(280)
+                            property real currentRadY: window.s(180)
                             
-                            property real pwrDrift: window.currentPower ? 0 : 40
+                            property real pwrDrift: window.currentPower ? 0 : window.s(40)
                             Behavior on pwrDrift { NumberAnimation { duration: 600; easing.type: Easing.OutQuint } }
 
                             property real animRadX: (currentRadX + pwrDrift) * (0.25 + 0.75 * entryAnim)
                             property real animRadY: (currentRadY + pwrDrift) * (0.25 + 0.75 * entryAnim)
 
                             x: (orbitContainer.width / 2) - (width / 2) + Math.cos(currentAngle) * animRadX
-                            y: (orbitContainer.height / 2) - (height / 2) + Math.sin(currentAngle) * animRadY + Math.sin(window.globalOrbitAngle * 6) * 12
+                            y: (orbitContainer.height / 2) - (height / 2) + Math.sin(currentAngle) * animRadY + Math.sin(window.globalOrbitAngle * 6) * window.s(12)
 
                             scale: !isLoaded ? 0.0 : 1.0
                             Behavior on scale { NumberAnimation { duration: 400; easing.type: Easing.OutQuart } }
@@ -862,14 +884,14 @@ Item {
                                 shadowColor: "#000000"
                                 shadowOpacity: 0.3
                                 shadowBlur: 0.8
-                                shadowVerticalOffset: 4
+                                shadowVerticalOffset: window.s(4)
                                 z: -1
                             }
 
                             Rectangle {
                                 id: floatCard
                                 anchors.fill: parent
-                                radius: 14
+                                radius: window.s(14)
                                 color: "#0effffff"
                                 
                                 property string itemName: name
@@ -883,14 +905,14 @@ Item {
                                     loops: Animation.Infinite
                                     PauseAnimation { duration: 600 } 
                                     NumberAnimation {
-                                        from: 0; to: -(floatCard.nameImplicitWidth + 30)
-                                        duration: (floatCard.nameImplicitWidth + 30) * 35
+                                        from: 0; to: -(floatCard.nameImplicitWidth + window.s(30))
+                                        duration: (floatCard.nameImplicitWidth + window.s(30)) * 35
                                     }
                                 }
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 14
+                                    radius: window.s(14)
                                     color: "transparent"
                                     border.width: 1
                                     border.color: window.surface2
@@ -898,24 +920,24 @@ Item {
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.margins: 12
-                                    spacing: 10
+                                    anchors.margins: window.s(12)
+                                    spacing: window.s(10)
                                     
                                     Text {
                                         font.family: "Iosevka Nerd Font"
-                                        font.pixelSize: 20
+                                        font.pixelSize: window.s(20)
                                         color: window.activeColor
                                         text: icon
                                     }
                                     
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        spacing: 2
+                                        spacing: window.s(2)
                                         
                                         Item {
                                             id: nameContainerBase
                                             Layout.fillWidth: true
-                                            height: 18
+                                            height: window.s(18)
                                             clip: true
 
                                             Text {
@@ -926,25 +948,25 @@ Item {
                                                 text: floatCard.itemName
                                                 font.family: "JetBrains Mono"
                                                 font.weight: Font.Bold
-                                                font.pixelSize: 13
+                                                font.pixelSize: window.s(13)
                                                 color: window.text
                                             }
                                             Text {
                                                 anchors.left: baseNameText.right
-                                                anchors.leftMargin: 30
+                                                anchors.leftMargin: window.s(30)
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 visible: floatCard.doMarquee
                                                 text: floatCard.itemName
                                                 font.family: "JetBrains Mono"
                                                 font.weight: Font.Bold
-                                                font.pixelSize: 13
+                                                font.pixelSize: window.s(13)
                                                 color: window.text
                                             }
                                         }
                                         
                                         Text {
                                             font.family: "JetBrains Mono"
-                                            font.pixelSize: 10
+                                            font.pixelSize: window.s(10)
                                             color: window.overlay0
                                             text: action
                                         }
@@ -962,30 +984,30 @@ Item {
             Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottomMargin: 25
-                width: 360
-                height: 54
-                radius: 14
+                anchors.bottomMargin: window.s(25)
+                width: window.s(360)
+                height: window.s(54)
+                radius: window.s(14)
                 color: "#1affffff" 
                 border.color: "#1affffff"
                 border.width: 1
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 6
+                    anchors.margins: window.s(6)
+                    spacing: window.s(6)
 
                     // Ethernet Mode Button
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 10
+                        radius: window.s(10)
                         color: window.activeMode === "eth" ? "transparent" : (ethTabMa.containsMouse ? window.surface1 : "transparent")
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 10
+                            radius: window.s(10)
                             opacity: window.activeMode === "eth" ? 1.0 : 0.0
                             Behavior on opacity { NumberAnimation { duration: 300 } }
                             gradient: Gradient {
@@ -997,9 +1019,9 @@ Item {
 
                         RowLayout {
                             anchors.centerIn: parent
-                            spacing: 8
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.activeMode === "eth" ? window.crust : window.text; text: "󰈀"; Behavior on color { ColorAnimation{duration:200} } }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 13; color: window.activeMode === "eth" ? window.crust : window.text; text: "Ethernet"; Behavior on color { ColorAnimation{duration:200} } }
+                            spacing: window.s(8)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.activeMode === "eth" ? window.crust : window.text; text: "󰈀"; Behavior on color { ColorAnimation{duration:200} } }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(13); color: window.activeMode === "eth" ? window.crust : window.text; text: "Ethernet"; Behavior on color { ColorAnimation{duration:200} } }
                         }
                         MouseArea {
                             id: ethTabMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -1010,19 +1032,19 @@ Item {
                         }
                     }
 
-                    Rectangle { width: 1; Layout.fillHeight: true; Layout.margins: 5; color: "#33ffffff" }
+                    Rectangle { width: 1; Layout.fillHeight: true; Layout.margins: window.s(5); color: "#33ffffff" }
 
                     // Audio Mode Button
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 10
+                        radius: window.s(10)
                         color: window.activeMode === "audio" ? "transparent" : (audioTabMa.containsMouse ? window.surface1 : "transparent")
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 10
+                            radius: window.s(10)
                             opacity: window.activeMode === "audio" ? 1.0 : 0.0
                             Behavior on opacity { NumberAnimation { duration: 300 } }
                             gradient: Gradient {
@@ -1034,9 +1056,9 @@ Item {
 
                         RowLayout {
                             anchors.centerIn: parent
-                            spacing: 8
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.activeMode === "audio" ? window.crust : window.text; text: "󰋋"; Behavior on color { ColorAnimation{duration:200} } }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 13; color: window.activeMode === "audio" ? window.crust : window.text; text: "Audio Jack"; Behavior on color { ColorAnimation{duration:200} } }
+                            spacing: window.s(8)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.activeMode === "audio" ? window.crust : window.text; text: "󰋋"; Behavior on color { ColorAnimation{duration:200} } }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(13); color: window.activeMode === "audio" ? window.crust : window.text; text: "Audio Jack"; Behavior on color { ColorAnimation{duration:200} } }
                         }
                         MouseArea {
                             id: audioTabMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -1053,17 +1075,17 @@ Item {
             Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
-                anchors.margins: 30
-                width: 48; height: 48; radius: 24
+                anchors.margins: window.s(30)
+                width: window.s(48); height: window.s(48); radius: window.s(24)
                 
                 color: "transparent"
                 border.color: window.currentPowerPending ? window.activeColor : (window.currentPower ? "transparent" : window.surface2)
-                border.width: 2
+                border.width: window.s(2)
                 Behavior on border.color { ColorAnimation { duration: 300 } }
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 24
+                    radius: window.s(24)
                     opacity: window.currentPower ? 1.0 : 0.0
                     Behavior on opacity { NumberAnimation { duration: 300 } }
                     gradient: Gradient {
@@ -1080,7 +1102,7 @@ Item {
                     id: pwrIcon
                     anchors.centerIn: parent
                     font.family: "Iosevka Nerd Font"
-                    font.pixelSize: 22
+                    font.pixelSize: window.s(22)
                     color: window.currentPower ? window.crust : window.text
                     text: window.currentPowerPending ? "󰑮" : "" 
                     Behavior on color { ColorAnimation { duration: 300 } }

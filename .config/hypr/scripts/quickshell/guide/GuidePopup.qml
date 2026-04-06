@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import QtQuick.Effects
 import QtQuick.Layouts
 import QtQuick.Controls
@@ -9,6 +10,18 @@ import "../"
 Item {
     id: root
     focus: true
+
+    // --- Responsive Scaling Logic ---
+    Scaler {
+        id: scaler
+        // Uses the physical screen width so the popup scales synchronously
+        currentWidth: Screen.width
+    }
+    
+    // Helper function scoped to the root Item for easy access
+    function s(val) { 
+        return scaler.s(val); 
+    }
 
     // -------------------------------------------------------------------------
     // KEYBOARD SHORTCUTS
@@ -152,7 +165,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 16
+            radius: root.s(16)
             color: root.base
             border.color: root.surface0
             border.width: 1
@@ -162,18 +175,18 @@ Item {
             NumberAnimation on time { from: 0; to: Math.PI * 2; duration: 20000; loops: Animation.Infinite; running: true }
 
             Rectangle {
-                width: 600; height: 600; radius: 300
-                x: parent.width * 0.6 + Math.cos(parent.time) * 100
-                y: parent.height * 0.1 + Math.sin(parent.time * 1.5) * 100
+                width: root.s(600); height: root.s(600); radius: root.s(300)
+                x: parent.width * 0.6 + Math.cos(parent.time) * root.s(100)
+                y: parent.height * 0.1 + Math.sin(parent.time * 1.5) * root.s(100)
                 color: root.ambientPurple
                 opacity: 0.04
                 layer.enabled: true; layer.effect: MultiEffect { blurEnabled: true; blurMax: 80; blur: 1.0 }
             }
 
             Rectangle {
-                width: 700; height: 700; radius: 350
-                x: parent.width * 0.1 + Math.sin(parent.time * 0.8) * 150
-                y: parent.height * 0.4 + Math.cos(parent.time * 1.2) * 100
+                width: root.s(700); height: root.s(700); radius: root.s(350)
+                x: parent.width * 0.1 + Math.sin(parent.time * 0.8) * root.s(150)
+                y: parent.height * 0.4 + Math.cos(parent.time * 1.2) * root.s(100)
                 color: root.ambientBlue
                 opacity: 0.03
                 layer.enabled: true; layer.effect: MultiEffect { blurEnabled: true; blurMax: 90; blur: 1.0 }
@@ -186,74 +199,74 @@ Item {
     // -------------------------------------------------------------------------
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 20
+        anchors.margins: root.s(20)
+        spacing: root.s(20)
 
         // ==========================================
         // SIDEBAR
         // ==========================================
         Rectangle {
             Layout.fillHeight: true
-            Layout.preferredWidth: 220
-            radius: 12
+            Layout.preferredWidth: root.s(220)
+            radius: root.s(12)
             color: Qt.alpha(root.surface0, 0.4)
             border.color: root.surface1; border.width: 1
             
             opacity: introSidebar
-            transform: Translate { x: -30 * (1.0 - introSidebar) }
+            transform: Translate { x: root.s(-30) * (1.0 - introSidebar) }
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 15
-                spacing: 10
+                anchors.margins: root.s(15)
+                spacing: root.s(10)
 
                 // Header
                 Item {
-                    Layout.fillWidth: true; Layout.preferredHeight: 60
+                    Layout.fillWidth: true; Layout.preferredHeight: root.s(60)
                     RowLayout {
                         anchors.fill: parent
-                        spacing: 12
+                        spacing: root.s(12)
                         Rectangle {
                             Layout.alignment: Qt.AlignVCenter
-                            width: 36; height: 36; radius: 10
+                            width: root.s(36); height: root.s(36); radius: root.s(10)
                             color: root.ambientPurple
-                            Text { anchors.centerIn: parent; text: "󰣇"; font.family: "Iosevka Nerd Font"; font.pixelSize: 20; color: root.base }
+                            Text { anchors.centerIn: parent; text: "󰣇"; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(20); color: root.base }
                         }
                         ColumnLayout {
                             Layout.alignment: Qt.AlignVCenter
-                            spacing: 2
-                            Text { text: "Imperative"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 15; color: root.text; Layout.alignment: Qt.AlignLeft }
-                            Text { text: "v1.0.4"; font.family: "JetBrains Mono"; font.pixelSize: 11; color: root.subtext0; Layout.alignment: Qt.AlignLeft }
+                            spacing: root.s(2)
+                            Text { text: "Imperative"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(15); color: root.text; Layout.alignment: Qt.AlignLeft }
+                            Text { text: "v1.0.4"; font.family: "JetBrains Mono"; font.pixelSize: root.s(11); color: root.subtext0; Layout.alignment: Qt.AlignLeft }
                         }
                     }
                 }
 
-                Rectangle { Layout.fillWidth: true; height: 1; color: Qt.alpha(root.surface1, 0.5); Layout.bottomMargin: 10 }
+                Rectangle { Layout.fillWidth: true; height: 1; color: Qt.alpha(root.surface1, 0.5); Layout.bottomMargin: root.s(10) }
 
                 // Tabs
                 Repeater {
                     model: root.tabNames.length
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 44
-                        radius: 8
+                        Layout.preferredHeight: root.s(44)
+                        radius: root.s(8)
                         
                         property bool isActive: root.currentTab === index
                         color: isActive ? root.surface1 : (tabMa.containsMouse ? Qt.alpha(root.surface1, 0.5) : "transparent")
                         Behavior on color { ColorAnimation { duration: 150 } }
 
                         RowLayout {
-                            anchors.fill: parent; anchors.leftMargin: 15; spacing: 12
+                            anchors.fill: parent; anchors.leftMargin: root.s(15); spacing: root.s(12)
                             Item {
-                                Layout.preferredWidth: 24; Layout.alignment: Qt.AlignVCenter
-                                Text { anchors.centerIn: parent; text: root.tabIcons[index]; font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: parent.parent.parent.isActive ? root.ambientPurple : root.subtext0; Behavior on color { ColorAnimation{duration:150} } }
+                                Layout.preferredWidth: root.s(24); Layout.alignment: Qt.AlignVCenter
+                                Text { anchors.centerIn: parent; text: root.tabIcons[index]; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(18); color: parent.parent.parent.isActive ? root.ambientPurple : root.subtext0; Behavior on color { ColorAnimation{duration:150} } }
                             }
-                            Text { text: root.tabNames[index]; font.family: "JetBrains Mono"; font.weight: parent.parent.isActive ? Font.Bold : Font.Medium; font.pixelSize: 13; color: parent.parent.isActive ? root.text : root.subtext0; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter; Behavior on color { ColorAnimation{duration:150} } }
+                            Text { text: root.tabNames[index]; font.family: "JetBrains Mono"; font.weight: parent.parent.isActive ? Font.Bold : Font.Medium; font.pixelSize: root.s(13); color: parent.parent.isActive ? root.text : root.subtext0; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter; Behavior on color { ColorAnimation{duration:150} } }
                         }
                         
                         Rectangle {
                             anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                            width: 3; height: parent.isActive ? 20 : 0; radius: 2
+                            width: root.s(3); height: parent.isActive ? root.s(20) : 0; radius: root.s(2)
                             color: root.ambientPurple
                             Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         }
@@ -270,7 +283,7 @@ Item {
 
                 // Close Button
                 Rectangle {
-                    Layout.fillWidth: true; Layout.preferredHeight: 44; radius: 8
+                    Layout.fillWidth: true; Layout.preferredHeight: root.s(44); radius: root.s(8)
                     color: closeHover.containsMouse ? Qt.alpha(root.red, 0.1) : "transparent"
                     border.color: closeHover.containsMouse ? root.red : root.surface1
                     border.width: 1
@@ -287,7 +300,7 @@ Item {
                             id: arrowText
                             text: "" 
                             font.family: "Iosevka Nerd Font"
-                            font.pixelSize: 16
+                            font.pixelSize: root.s(16)
                             color: closeHover.containsMouse ? root.red : root.subtext0
                             Behavior on color { ColorAnimation { duration: 150 } }
                         }
@@ -306,7 +319,7 @@ Item {
             
             opacity: introContent
             scale: 0.95 + (0.05 * introContent)
-            transform: Translate { y: 20 * (1.0 - introContent) }
+            transform: Translate { y: root.s(20) * (1.0 - introContent) }
 
             // ------------------------------------------
             // TAB 0: SYSTEM OVERVIEW
@@ -315,7 +328,7 @@ Item {
                 anchors.fill: parent
                 visible: root.currentTab === 0
                 opacity: visible ? 1.0 : 0.0
-                property real slideY: visible ? 0 : 10
+                property real slideY: visible ? 0 : root.s(10)
                 Behavior on slideY { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                 transform: Translate { y: slideY }
                 Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -331,13 +344,13 @@ Item {
                 }
 
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 20; spacing: 20
+                    anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(20)
 
                     // AUTHOR BLOCK
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 80
-                        radius: 12
+                        Layout.preferredHeight: root.s(80)
+                        radius: root.s(12)
                         color: authorMa.containsMouse ? Qt.alpha(root.surface1, 0.6) : Qt.alpha(root.surface0, 0.4)
                         border.color: authorMa.containsMouse ? root.mauve : root.surface1
                         border.width: 1
@@ -349,27 +362,27 @@ Item {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 15
-                            spacing: 15
+                            anchors.margins: root.s(15)
+                            spacing: root.s(15)
 
                             // GitHub Icon
                             Rectangle {
                                 Layout.alignment: Qt.AlignVCenter
-                                width: 48; height: 48; radius: 10
+                                width: root.s(48); height: root.s(48); radius: root.s(10)
                                 color: root.surface0
                                 border.color: root.surface2; border.width: 1
-                                Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: 28; color: root.text }
+                                Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(28); color: root.text }
                             }
 
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignVCenter
-                                spacing: 2
+                                spacing: root.s(2)
                                 
-                                Text { text: "System Configuration Author"; font.family: "JetBrains Mono"; font.pixelSize: 11; color: root.subtext0; font.weight: Font.Medium }
+                                Text { text: "System Configuration Author"; font.family: "JetBrains Mono"; font.pixelSize: root.s(11); color: root.subtext0; font.weight: Font.Medium }
                                 
                                 // Interactive Multi-color Text
                                 Row {
-                                    spacing: 1
+                                    spacing: root.s(1)
                                     Repeater {
                                         model: [
                                             { l: "i", c: root.red },
@@ -385,11 +398,11 @@ Item {
                                             text: modelData.l
                                             font.family: "JetBrains Mono"
                                             font.weight: Font.Black
-                                            font.pixelSize: 22
+                                            font.pixelSize: root.s(22)
                                             color: modelData.c
                                             
                                             // Staggered wave bounce
-                                            property real hoverOffset: authorMa.containsMouse ? -4 : 0
+                                            property real hoverOffset: authorMa.containsMouse ? root.s(-4) : 0
                                             transform: Translate { y: hoverOffset }
                                             Behavior on hoverOffset { 
                                                 NumberAnimation { 
@@ -405,9 +418,9 @@ Item {
                             
                             Rectangle {
                                 Layout.alignment: Qt.AlignVCenter
-                                width: 32; height: 32; radius: 8
+                                width: root.s(32); height: root.s(32); radius: root.s(8)
                                 color: authorMa.containsMouse ? root.surface1 : "transparent"
-                                Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: authorMa.containsMouse ? root.mauve : root.subtext0; Behavior on color { ColorAnimation { duration: 150 } } }
+                                Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(18); color: authorMa.containsMouse ? root.mauve : root.subtext0; Behavior on color { ColorAnimation { duration: 150 } } }
                             }
                         }
 
@@ -420,17 +433,17 @@ Item {
                         }
                     }
 
-                    Text { text: "System Architecture"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: root.text; Layout.alignment: Qt.AlignVCenter; Layout.topMargin: 5 }
+                    Text { text: "System Architecture"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(28); color: root.text; Layout.alignment: Qt.AlignVCenter; Layout.topMargin: root.s(5) }
                     
                     GridLayout {
                         Layout.fillWidth: true
                         columns: 2
-                        rowSpacing: 15; columnSpacing: 15
+                        rowSpacing: root.s(15); columnSpacing: root.s(15)
 
                         Repeater {
                             model: systemDataModel
                             Rectangle {
-                                Layout.fillWidth: true; Layout.preferredHeight: 70; radius: 10
+                                Layout.fillWidth: true; Layout.preferredHeight: root.s(70); radius: root.s(10)
                                 color: sysCardMa.containsMouse ? Qt.alpha(root[model.clr], 0.1) : Qt.alpha(root.surface0, 0.4)
                                 border.color: sysCardMa.containsMouse ? root[model.clr] : root.surface1; border.width: 1
                                 scale: sysCardMa.pressed ? 0.98 : 1.0
@@ -441,26 +454,26 @@ Item {
                                 // COMPLETELY REWRITTEN LAYOUT: Absolute anchors bypass implicit spacing errors
                                 Item {
                                     anchors.fill: parent
-                                    anchors.margins: 15
+                                    anchors.margins: root.s(15)
                                     
                                     // 1. Icon strictly anchored to the exact left wall
                                     Item {
                                         id: sysIconBox
                                         anchors.left: parent.left
                                         anchors.verticalCenter: parent.verticalCenter
-                                        width: 40; height: 40
-                                        Text { anchors.centerIn: parent; text: model.icon; font.family: "Iosevka Nerd Font"; font.pixelSize: 24; color: root[model.clr] }
+                                        width: root.s(40); height: root.s(40)
+                                        Text { anchors.centerIn: parent; text: model.icon; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(24); color: root[model.clr] }
                                     }
                                     
                                     // 2. Text mathematically forced 15px from the icon box right edge
                                     Column {
                                         anchors.left: sysIconBox.right
-                                        anchors.leftMargin: 15
+                                        anchors.leftMargin: root.s(15)
                                         anchors.right: parent.right
                                         anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 2
-                                        Text { text: model.pkg; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 15; color: root.text }
-                                        Text { text: model.role; font.family: "JetBrains Mono"; font.pixelSize: 12; color: root.subtext0 }
+                                        spacing: root.s(2)
+                                        Text { text: model.pkg; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(15); color: root.text }
+                                        Text { text: model.role; font.family: "JetBrains Mono"; font.pixelSize: root.s(12); color: root.subtext0 }
                                     }
                                 }
                                 MouseArea { 
@@ -481,7 +494,7 @@ Item {
                 anchors.fill: parent
                 visible: root.currentTab === 1
                 opacity: visible ? 1.0 : 0.0
-                property real slideY: visible ? 0 : 10
+                property real slideY: visible ? 0 : root.s(10)
                 Behavior on slideY { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                 transform: Translate { y: slideY }
                 Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -500,10 +513,10 @@ Item {
                 }
 
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 20; spacing: 20
+                    anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(20)
 
-                    Text { text: "Interactive Modules"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: root.text; Layout.alignment: Qt.AlignVCenter }
-                    Text { text: "Click any card to toggle the live module overlay."; font.family: "JetBrains Mono"; font.pixelSize: 14; color: root.subtext0; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Interactive Modules"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(28); color: root.text; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Click any card to toggle the live module overlay."; font.family: "JetBrains Mono"; font.pixelSize: root.s(14); color: root.subtext0; Layout.alignment: Qt.AlignVCenter }
                     
                     ScrollView {
                         Layout.fillWidth: true; Layout.fillHeight: true
@@ -513,15 +526,15 @@ Item {
                         GridLayout {
                             width: parent.width
                             columns: 2
-                            columnSpacing: 15
-                            rowSpacing: 15
+                            columnSpacing: root.s(15)
+                            rowSpacing: root.s(15)
                             
                             Repeater {
                                 model: modulesDataModel
                                 Rectangle {
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 100
-                                    radius: 12
+                                    Layout.preferredHeight: root.s(100)
+                                    radius: root.s(12)
                                     color: modMa.containsMouse ? root.surface1 : Qt.alpha(root.surface0, 0.4)
                                     border.color: modMa.containsMouse ? root.ambientBlue : root.surface1; border.width: 1
                                     clip: true
@@ -532,18 +545,18 @@ Item {
                                     Behavior on border.color { ColorAnimation { duration: 200 } }
 
                                     ColumnLayout {
-                                        anchors.fill: parent; anchors.margins: 15; spacing: 8
+                                        anchors.fill: parent; anchors.margins: root.s(15); spacing: root.s(8)
                                         RowLayout {
-                                            spacing: 10
+                                            spacing: root.s(10)
                                             Rectangle {
                                                 Layout.alignment: Qt.AlignVCenter
-                                                width: 32; height: 32; radius: 8; color: Qt.alpha(root.base, 0.5)
-                                                Text { anchors.centerIn: parent; text: model.icon; font.family: "Iosevka Nerd Font"; font.pixelSize: 16; color: modMa.containsMouse ? root.ambientBlue : root.text }
+                                                width: root.s(32); height: root.s(32); radius: root.s(8); color: Qt.alpha(root.base, 0.5)
+                                                Text { anchors.centerIn: parent; text: model.icon; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(16); color: modMa.containsMouse ? root.ambientBlue : root.text }
                                             }
-                                            Text { text: model.title; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 13; color: root.text; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
+                                            Text { text: model.title; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(13); color: root.text; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
                                         }
                                         Text {
-                                            text: model.desc; font.family: "JetBrains Mono"; font.pixelSize: 11; color: root.subtext0; Layout.alignment: Qt.AlignLeft
+                                            text: model.desc; font.family: "JetBrains Mono"; font.pixelSize: root.s(11); color: root.subtext0; Layout.alignment: Qt.AlignLeft
                                             opacity: 1.0
                                         }
                                     }
@@ -565,16 +578,16 @@ Item {
                 anchors.fill: parent
                 visible: root.currentTab === 2
                 opacity: visible ? 1.0 : 0.0
-                property real slideY: visible ? 0 : 10
+                property real slideY: visible ? 0 : root.s(10)
                 Behavior on slideY { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                 transform: Translate { y: slideY }
                 Behavior on opacity { NumberAnimation { duration: 250 } }
 
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 20; spacing: 20
+                    anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(20)
 
-                    Text { text: "Navigation & Control"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: root.text; Layout.alignment: Qt.AlignVCenter }
-                    Text { text: "Click any row below to instantly execute the keybind command."; font.family: "JetBrains Mono"; font.pixelSize: 14; color: root.subtext0; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Navigation & Control"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(28); color: root.text; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Click any row below to instantly execute the keybind command."; font.family: "JetBrains Mono"; font.pixelSize: root.s(14); color: root.subtext0; Layout.alignment: Qt.AlignVCenter }
                     
                     ScrollView {
                         Layout.fillWidth: true; Layout.fillHeight: true
@@ -582,28 +595,28 @@ Item {
                         clip: true; ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                         
                         GridLayout {
-                            width: parent.width; columns: 2; rowSpacing: 10; columnSpacing: 15
+                            width: parent.width; columns: 2; rowSpacing: root.s(10); columnSpacing: root.s(15)
                             
                             Rectangle {
                                 Layout.columnSpan: 2
-                                Layout.fillWidth: true; Layout.preferredHeight: 60; radius: 8
+                                Layout.fillWidth: true; Layout.preferredHeight: root.s(60); radius: root.s(8)
                                 color: Qt.alpha(root.surface0, 0.4)
                                 border.color: root.surface1; border.width: 1
 
                                 RowLayout {
-                                    anchors.fill: parent; anchors.margins: 10; spacing: 10
+                                    anchors.fill: parent; anchors.margins: root.s(10); spacing: root.s(10)
                                     
-                                    Text { text: "Workspaces (SUPER + 1-9)"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 13; color: root.text; Layout.alignment: Qt.AlignVCenter }
+                                    Text { text: "Workspaces (SUPER + 1-9)"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(13); color: root.text; Layout.alignment: Qt.AlignVCenter }
                                     Item { Layout.fillWidth: true }
                                     
                                     Repeater {
                                         model: 9
                                         Rectangle {
                                             property int wsNum: index + 1
-                                            Layout.preferredWidth: 32; Layout.preferredHeight: 32; radius: 6
+                                            Layout.preferredWidth: root.s(32); Layout.preferredHeight: root.s(32); radius: root.s(6)
                                             color: wsMa.containsMouse ? root.surface1 : root.surface0
                                             border.color: wsMa.containsMouse ? root.peach : "transparent"; border.width: 1
-                                            Text { anchors.centerIn: parent; text: parent.wsNum; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: root.peach }
+                                            Text { anchors.centerIn: parent; text: parent.wsNum; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(12); color: root.peach }
                                             
                                             MouseArea {
                                                 id: wsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -617,7 +630,7 @@ Item {
                             Repeater {
                                 model: dynamicKeybindsModel
                                 Rectangle {
-                                    Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 8
+                                    Layout.fillWidth: true; Layout.preferredHeight: root.s(46); radius: root.s(8)
                                     color: bindMa.containsMouse ? root.surface1 : Qt.alpha(root.surface0, 0.4)
                                     border.color: bindMa.containsMouse ? root.peach : "transparent"
                                     border.width: 1
@@ -627,23 +640,23 @@ Item {
                                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
                                     RowLayout {
-                                        anchors.fill: parent; anchors.margins: 10; spacing: 15
+                                        anchors.fill: parent; anchors.margins: root.s(10); spacing: root.s(15)
                                         
                                         Item {
-                                            Layout.preferredWidth: 220
-                                            Layout.minimumWidth: 220
-                                            Layout.maximumWidth: 220
+                                            Layout.preferredWidth: root.s(220)
+                                            Layout.minimumWidth: root.s(220)
+                                            Layout.maximumWidth: root.s(220)
                                             Layout.fillHeight: true
                                             Row {
-                                                anchors.verticalCenter: parent.verticalCenter; spacing: 8
+                                                anchors.verticalCenter: parent.verticalCenter; spacing: root.s(8)
                                                 Rectangle { 
-                                                    width: k1Text.implicitWidth + 16; height: 26; radius: 4; color: root.surface0; border.color: root.surface2; border.width: 1
-                                                    Text { id: k1Text; anchors.centerIn: parent; text: model.k1; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 11; color: root.peach }
+                                                    width: k1Text.implicitWidth + root.s(16); height: root.s(26); radius: root.s(4); color: root.surface0; border.color: root.surface2; border.width: 1
+                                                    Text { id: k1Text; anchors.centerIn: parent; text: model.k1; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(11); color: root.peach }
                                                 }
-                                                Text { text: "+"; font.family: "JetBrains Mono"; font.pixelSize: 12; color: root.overlay0; visible: model.k2 !== ""; anchors.verticalCenter: parent.verticalCenter }
+                                                Text { text: "+"; font.family: "JetBrains Mono"; font.pixelSize: root.s(12); color: root.overlay0; visible: model.k2 !== ""; anchors.verticalCenter: parent.verticalCenter }
                                                 Rectangle { 
-                                                    width: k2Text.implicitWidth + 16; height: 26; radius: 4; color: root.surface0; border.color: root.surface2; border.width: 1; visible: model.k2 !== ""
-                                                    Text { id: k2Text; anchors.centerIn: parent; text: model.k2; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 11; color: root.peach }
+                                                    width: k2Text.implicitWidth + root.s(16); height: root.s(26); radius: root.s(4); color: root.surface0; border.color: root.surface2; border.width: 1; visible: model.k2 !== ""
+                                                    Text { id: k2Text; anchors.centerIn: parent; text: model.k2; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(11); color: root.peach }
                                                 }
                                             }
                                         }
@@ -651,7 +664,7 @@ Item {
                                         Text { 
                                             text: model.action
                                             font.family: "JetBrains Mono"
-                                            font.pixelSize: 13
+                                            font.pixelSize: root.s(13)
                                             color: root.text
                                             Layout.fillWidth: true
                                             Layout.alignment: Qt.AlignVCenter
@@ -678,64 +691,64 @@ Item {
                 anchors.fill: parent
                 visible: root.currentTab === 3
                 opacity: visible ? 1.0 : 0.0
-                property real slideY: visible ? 0 : 10
+                property real slideY: visible ? 0 : root.s(10)
                 Behavior on slideY { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                 transform: Translate { y: slideY }
                 Behavior on opacity { NumberAnimation { duration: 250 } }
 
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 20; spacing: 20
+                    anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(20)
 
-                    Text { text: "Theming Engine"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: root.text; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Theming Engine"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(28); color: root.text; Layout.alignment: Qt.AlignVCenter }
                     
                     // Diagram Area
                     Rectangle {
-                        Layout.fillWidth: true; Layout.preferredHeight: 160; radius: 12
+                        Layout.fillWidth: true; Layout.preferredHeight: root.s(160); radius: root.s(12)
                         color: Qt.alpha(root.surface0, 0.4); border.color: root.ambientPurple; border.width: 1
                         
                         RowLayout {
-                            anchors.fill: parent; anchors.margins: 20; spacing: 20
+                            anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(20)
                             
                             Item { Layout.fillWidth: true } // Left spacer for perfect centering
 
                             // 1. Wallpaper
                             ColumnLayout {
-                                Layout.alignment: Qt.AlignVCenter; spacing: 8
-                                Rectangle { Layout.alignment: Qt.AlignHCenter; width: 60; height: 60; radius: 10; color: root.surface1; Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: 28; color: root.text } }
-                                Text { text: "Wallpaper"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: root.text; Layout.alignment: Qt.AlignHCenter }
+                                Layout.alignment: Qt.AlignVCenter; spacing: root.s(8)
+                                Rectangle { Layout.alignment: Qt.AlignHCenter; width: root.s(60); height: root.s(60); radius: root.s(10); color: root.surface1; Text { anchors.centerIn: parent; text: ""; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(28); color: root.text } }
+                                Text { text: "Wallpaper"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(12); color: root.text; Layout.alignment: Qt.AlignHCenter }
                             }
                             
                             // Arrow 1
                             Canvas {
                                 Layout.alignment: Qt.AlignVCenter
-                                width: 40; height: 24
+                                width: root.s(40); height: root.s(24)
                                 onPaint: {
                                     var ctx = getContext("2d");
                                     ctx.strokeStyle = root.overlay0;
-                                    ctx.lineWidth = 2;
+                                    ctx.lineWidth = root.s(2);
                                     ctx.lineCap = "round";
                                     ctx.lineJoin = "round";
                                     ctx.beginPath();
-                                    ctx.moveTo(4, 12);
-                                    ctx.lineTo(36, 12);
-                                    ctx.moveTo(26, 4);
-                                    ctx.lineTo(36, 12);
-                                    ctx.lineTo(26, 20);
+                                    ctx.moveTo(root.s(4), root.s(12));
+                                    ctx.lineTo(root.s(36), root.s(12));
+                                    ctx.moveTo(root.s(26), root.s(4));
+                                    ctx.lineTo(root.s(36), root.s(12));
+                                    ctx.lineTo(root.s(26), root.s(20));
                                     ctx.stroke();
                                 }
                             }
                             
                             // 2. Matugen Core
                             Rectangle {
-                                width: 180; height: 90; radius: 12; color: root.base; border.color: root.ambientPurple; border.width: 2; Layout.alignment: Qt.AlignVCenter
+                                width: root.s(180); height: root.s(90); radius: root.s(12); color: root.base; border.color: root.ambientPurple; border.width: root.s(2); Layout.alignment: Qt.AlignVCenter
                                 ColumnLayout {
-                                    anchors.centerIn: parent; spacing: 8
-                                    Text { text: "Matugen Core"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 15; color: root.ambientPurple; Layout.alignment: Qt.AlignHCenter }
+                                    anchors.centerIn: parent; spacing: root.s(8)
+                                    Text { text: "Matugen Core"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(15); color: root.ambientPurple; Layout.alignment: Qt.AlignHCenter }
                                     RowLayout {
-                                        spacing: 4; Layout.alignment: Qt.AlignHCenter
+                                        spacing: root.s(4); Layout.alignment: Qt.AlignHCenter
                                         Repeater {
                                             model: [root.red, root.peach, root.yellow, root.green, root.blue, root.mauve]
-                                            Rectangle { Layout.alignment: Qt.AlignVCenter; width: 12; height: 12; radius: 6; color: modelData }
+                                            Rectangle { Layout.alignment: Qt.AlignVCenter; width: root.s(12); height: root.s(12); radius: root.s(6); color: modelData }
                                         }
                                     }
                                 }
@@ -744,40 +757,40 @@ Item {
                             // Arrow 2
                             Canvas {
                                 Layout.alignment: Qt.AlignVCenter
-                                width: 40; height: 24
+                                width: root.s(40); height: root.s(24)
                                 onPaint: {
                                     var ctx = getContext("2d");
                                     ctx.strokeStyle = root.overlay0;
-                                    ctx.lineWidth = 2;
+                                    ctx.lineWidth = root.s(2);
                                     ctx.lineCap = "round";
                                     ctx.lineJoin = "round";
                                     ctx.beginPath();
-                                    ctx.moveTo(4, 12);
-                                    ctx.lineTo(36, 12);
-                                    ctx.moveTo(26, 4);
-                                    ctx.lineTo(36, 12);
-                                    ctx.lineTo(26, 20);
+                                    ctx.moveTo(root.s(4), root.s(12));
+                                    ctx.lineTo(root.s(36), root.s(12));
+                                    ctx.moveTo(root.s(26), root.s(4));
+                                    ctx.lineTo(root.s(36), root.s(12));
+                                    ctx.lineTo(root.s(26), root.s(20));
                                     ctx.stroke();
                                 }
                             }
 
                             // 3. Output
                             ColumnLayout {
-                                Layout.alignment: Qt.AlignVCenter; spacing: 8
-                                Rectangle { Layout.alignment: Qt.AlignHCenter; width: 60; height: 60; radius: 10; color: root.surface1; Text { anchors.centerIn: parent; text: "󰏘"; font.family: "Iosevka Nerd Font"; font.pixelSize: 28; color: root.text } }
-                                Text { text: "Templates"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: root.text; Layout.alignment: Qt.AlignHCenter }
+                                Layout.alignment: Qt.AlignVCenter; spacing: root.s(8)
+                                Rectangle { Layout.alignment: Qt.AlignHCenter; width: root.s(60); height: root.s(60); radius: root.s(10); color: root.surface1; Text { anchors.centerIn: parent; text: "󰏘"; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(28); color: root.text } }
+                                Text { text: "Templates"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(12); color: root.text; Layout.alignment: Qt.AlignHCenter }
                             }
 
                             Item { Layout.fillWidth: true } // Right spacer for perfect centering
                         }
                     }
 
-                    Text { text: "When you change wallpapers, Matugen extracts the dominant colors and injects them directly into these configuration files in real-time:"; font.family: "JetBrains Mono"; font.pixelSize: 13; color: root.subtext0; Layout.fillWidth: true; wrapMode: Text.WordWrap; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "When you change wallpapers, Matugen extracts the dominant colors and injects them directly into these configuration files in real-time:"; font.family: "JetBrains Mono"; font.pixelSize: root.s(13); color: root.subtext0; Layout.fillWidth: true; wrapMode: Text.WordWrap; Layout.alignment: Qt.AlignVCenter }
 
                     // Template Files Grid
                     GridLayout {
                         Layout.fillWidth: true; Layout.fillHeight: true
-                        columns: 3; rowSpacing: 10; columnSpacing: 10
+                        columns: 3; rowSpacing: root.s(10); columnSpacing: root.s(10)
                         
                         Repeater {
                             model: [
@@ -789,7 +802,7 @@ Item {
                                 { f: "swaync/osd.css", i: "󰂚", c: "pink" }
                             ]
                             Rectangle {
-                                Layout.fillWidth: true; Layout.preferredHeight: 45; radius: 8
+                                Layout.fillWidth: true; Layout.preferredHeight: root.s(45); radius: root.s(8)
                                 color: tplMa.containsMouse ? Qt.alpha(root[modelData.c], 0.1) : root.surface0
                                 border.color: tplMa.containsMouse ? root[modelData.c] : "transparent"
                                 border.width: 1
@@ -797,12 +810,12 @@ Item {
                                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                                 RowLayout {
-                                    anchors.fill: parent; anchors.margins: 10; spacing: 10
+                                    anchors.fill: parent; anchors.margins: root.s(10); spacing: root.s(10)
                                     Item {
-                                        Layout.preferredWidth: 24; Layout.alignment: Qt.AlignVCenter
-                                        Text { anchors.centerIn: parent; text: modelData.i; font.family: "Iosevka Nerd Font"; font.pixelSize: 16; color: root[modelData.c] }
+                                        Layout.preferredWidth: root.s(24); Layout.alignment: Qt.AlignVCenter
+                                        Text { anchors.centerIn: parent; text: modelData.i; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(16); color: root[modelData.c] }
                                     }
-                                    Text { text: modelData.f; font.family: "JetBrains Mono"; font.weight: Font.Medium; font.pixelSize: 12; color: root.text; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
+                                    Text { text: modelData.f; font.family: "JetBrains Mono"; font.weight: Font.Medium; font.pixelSize: root.s(12); color: root.text; Layout.fillWidth: true; Layout.alignment: Qt.AlignVCenter }
                                 }
                                 MouseArea { id: tplMa; anchors.fill: parent; hoverEnabled: true }
                             }
@@ -819,7 +832,7 @@ Item {
                 anchors.fill: parent
                 visible: root.currentTab === 4
                 opacity: visible ? 1.0 : 0.0
-                property real slideY: visible ? 0 : 10
+                property real slideY: visible ? 0 : root.s(10)
                 Behavior on slideY { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
                 transform: Translate { y: slideY }
                 Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -843,30 +856,30 @@ Item {
                 }
 
                 ColumnLayout {
-                    anchors.fill: parent; anchors.margins: 20; spacing: 15
+                    anchors.fill: parent; anchors.margins: root.s(20); spacing: root.s(15)
 
-                    Text { text: "Weather Configuration"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: root.text; Layout.alignment: Qt.AlignVCenter }
+                    Text { text: "Weather Configuration"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(28); color: root.text; Layout.alignment: Qt.AlignVCenter }
                     
                     Text { 
                         text: "To use the weather widget, please enter your OpenWeatherMap API Key.\nThen, search for your city's exact Latitude and Longitude on Google and enter them below."
-                        font.family: "JetBrains Mono"; font.pixelSize: 13; color: root.subtext0
+                        font.family: "JetBrains Mono"; font.pixelSize: root.s(13); color: root.subtext0
                         Layout.fillWidth: true; wrapMode: Text.WordWrap; Layout.alignment: Qt.AlignVCenter 
                     }
                     
                     // 1. API Key Input
                     Rectangle {
-                        Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 8
+                        Layout.fillWidth: true; Layout.preferredHeight: root.s(46); radius: root.s(8)
                         color: root.surface0; border.color: apiKeyInput.activeFocus ? root.blue : root.surface2; border.width: 1
                         Behavior on border.color { ColorAnimation { duration: 150 } }
                         
                         RowLayout {
-                            anchors.fill: parent; anchors.margins: 10; spacing: 10
-                            Text { text: "󰌆"; font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: root.subtext0 }
+                            anchors.fill: parent; anchors.margins: root.s(10); spacing: root.s(10)
+                            Text { text: "󰌆"; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(18); color: root.subtext0 }
                             TextInput {
                                 id: apiKeyInput
                                 Layout.fillWidth: true; Layout.fillHeight: true
                                 verticalAlignment: TextInput.AlignVCenter
-                                font.family: "JetBrains Mono"; font.pixelSize: 13; color: root.text
+                                font.family: "JetBrains Mono"; font.pixelSize: root.s(13); color: root.text
                                 clip: true; selectByMouse: true
                                 Text { text: "Enter OpenWeather API Key..."; color: root.subtext0; visible: !parent.text && !parent.activeFocus; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                             }
@@ -875,28 +888,28 @@ Item {
 
                     // 2. Manual Coordinates Inputs
                     RowLayout {
-                        Layout.fillWidth: true; spacing: 15; Layout.topMargin: 10
+                        Layout.fillWidth: true; spacing: root.s(15); Layout.topMargin: root.s(10)
                         Rectangle {
-                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 8
+                            Layout.fillWidth: true; Layout.preferredHeight: root.s(46); radius: root.s(8)
                             color: root.surface0; border.color: latInput.activeFocus ? root.peach : root.surface2; border.width: 1
                             Behavior on border.color { ColorAnimation { duration: 150 } }
 
                             TextInput {
                                 id: latInput
-                                anchors.fill: parent; anchors.margins: 10; verticalAlignment: TextInput.AlignVCenter
-                                font.family: "JetBrains Mono"; font.pixelSize: 13; color: root.text; clip: true; selectByMouse: true
+                                anchors.fill: parent; anchors.margins: root.s(10); verticalAlignment: TextInput.AlignVCenter
+                                font.family: "JetBrains Mono"; font.pixelSize: root.s(13); color: root.text; clip: true; selectByMouse: true
                                 Text { text: "Latitude (e.g. 51.5074)"; color: root.subtext0; visible: !parent.text && !parent.activeFocus; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                             }
                         }
                         Rectangle {
-                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 8
+                            Layout.fillWidth: true; Layout.preferredHeight: root.s(46); radius: root.s(8)
                             color: root.surface0; border.color: lonInput.activeFocus ? root.peach : root.surface2; border.width: 1
                             Behavior on border.color { ColorAnimation { duration: 150 } }
 
                             TextInput {
                                 id: lonInput
-                                anchors.fill: parent; anchors.margins: 10; verticalAlignment: TextInput.AlignVCenter
-                                font.family: "JetBrains Mono"; font.pixelSize: 13; color: root.text; clip: true; selectByMouse: true
+                                anchors.fill: parent; anchors.margins: root.s(10); verticalAlignment: TextInput.AlignVCenter
+                                font.family: "JetBrains Mono"; font.pixelSize: root.s(13); color: root.text; clip: true; selectByMouse: true
                                 Text { text: "Longitude (e.g. -0.1278)"; color: root.subtext0; visible: !parent.text && !parent.activeFocus; font: parent.font; anchors.verticalCenter: parent.verticalCenter }
                             }
                         }
@@ -904,16 +917,16 @@ Item {
 
                     // 3. Units 
                     RowLayout {
-                        Layout.fillWidth: true; spacing: 15; Layout.topMargin: 10
+                        Layout.fillWidth: true; spacing: root.s(15); Layout.topMargin: root.s(10)
                         
-                        Text { text: "Units:"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 13; color: root.text }
+                        Text { text: "Units:"; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: root.s(13); color: root.text }
                         
                         RowLayout {
-                            spacing: 5
+                            spacing: root.s(5)
                             Repeater {
                                 model: ["metric", "imperial", "standard"]
                                 Rectangle {
-                                    Layout.preferredWidth: 80; Layout.preferredHeight: 32; radius: 6
+                                    Layout.preferredWidth: root.s(80); Layout.preferredHeight: root.s(32); radius: root.s(6)
                                     color: weatherTab.selectedUnit === modelData ? Qt.alpha(root.mauve, 0.2) : "transparent"
                                     border.color: weatherTab.selectedUnit === modelData ? root.mauve : root.surface1; border.width: 1
                                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -921,7 +934,7 @@ Item {
 
                                     Text { 
                                         anchors.centerIn: parent; text: modelData
-                                        font.family: "JetBrains Mono"; font.pixelSize: 11; font.capitalization: Font.Capitalize
+                                        font.family: "JetBrains Mono"; font.pixelSize: root.s(11); font.capitalization: Font.Capitalize
                                         color: weatherTab.selectedUnit === modelData ? root.mauve : root.subtext0 
                                     }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: weatherTab.selectedUnit = modelData }
@@ -938,7 +951,7 @@ Item {
                         Item { Layout.fillWidth: true } // Fills remaining horizontal space on the left to push the button right
 
                         Rectangle {
-                            Layout.preferredWidth: 160; Layout.preferredHeight: 46; radius: 8
+                            Layout.preferredWidth: root.s(160); Layout.preferredHeight: root.s(46); radius: root.s(8)
                             color: saveMa.containsMouse ? Qt.alpha(root.green, 0.8) : root.green
                             scale: saveMa.pressed ? 0.95 : (saveMa.containsMouse ? 1.02 : 1.0)
                             
@@ -946,9 +959,9 @@ Item {
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             RowLayout {
-                                anchors.centerIn: parent; spacing: 8
-                                Text { text: "󰆓"; font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: root.base }
-                                Text { text: "Save Config"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 14; color: root.base }
+                                anchors.centerIn: parent; spacing: root.s(8)
+                                Text { text: "󰆓"; font.family: "Iosevka Nerd Font"; font.pixelSize: root.s(18); color: root.base }
+                                Text { text: "Save Config"; font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: root.s(14); color: root.base }
                             }
                             MouseArea { 
                                 id: saveMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; 

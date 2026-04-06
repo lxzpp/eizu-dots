@@ -1,16 +1,15 @@
 .pragma library
 
-// Centralized scaling logic to perfectly match Scaler.qml
 function getScale(mw) {
     if (mw <= 0) return 1.0;
     let r = mw / 1920.0;
     
     if (r <= 1.0) {
-        // Shrinks slower than linear
         return Math.max(0.35, Math.pow(r, 0.85));
     } else {
-        // Non-linear scale up for 2K/4K
-        return Math.pow(r, 0.6);
+        // SCALING UP:
+        // Kept at 0.85 so it still looks good on 4K.
+        return Math.pow(r, 0.85);
     }
 }
 

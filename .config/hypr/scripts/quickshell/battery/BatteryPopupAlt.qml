@@ -8,6 +8,19 @@ import "../"
 
 Item {
     id: window
+
+    // --- Responsive Scaling Logic ---
+    Scaler {
+        id: scaler
+        // Uses the physical screen width so the popup scales synchronously with the TopBar
+        currentWidth: Screen.width
+    }
+    
+    // Helper function scoped to the root Item for easy access in deeply nested elements and Canvases
+    function s(val) { 
+        return scaler.s(val); 
+    }
+
     // -------------------------------------------------------------------------
     // COLORS (Dynamic Matugen Palette)
     // -------------------------------------------------------------------------
@@ -221,12 +234,12 @@ Item {
         anchors.fill: parent
         scale: 0.92 + (0.08 * introMain)
         opacity: introMain
-        transform: Translate { y: 15 * (1 - introMain) }
+        transform: Translate { y: window.s(15) * (1 - introMain) }
 
         // Outer Border
         Rectangle {
             anchors.fill: parent
-            radius: 20
+            radius: window.s(20)
             color: window.base
             border.color: window.surface1 
             border.width: 1
@@ -235,16 +248,16 @@ Item {
             // Rotating Background Blobs
             Rectangle {
                 width: parent.width * 0.8; height: width; radius: width / 2
-                x: (parent.width / 2 - width / 2) + Math.cos(window.globalOrbitAngle * 2) * 150
-                y: (parent.height / 2 - height / 2) + Math.sin(window.globalOrbitAngle * 2) * 100
+                x: (parent.width / 2 - width / 2) + Math.cos(window.globalOrbitAngle * 2) * window.s(150)
+                y: (parent.height / 2 - height / 2) + Math.sin(window.globalOrbitAngle * 2) * window.s(100)
                 opacity: 0.08
                 color: window.ambientPrimary
             }
             
             Rectangle {
                 width: parent.width * 0.9; height: width; radius: width / 2
-                x: (parent.width / 2 - width / 2) + Math.sin(window.globalOrbitAngle * 1.5) * -150
-                y: (parent.height / 2 - height / 2) + Math.cos(window.globalOrbitAngle * 1.5) * -100
+                x: (parent.width / 2 - width / 2) + Math.sin(window.globalOrbitAngle * 1.5) * window.s(-150)
+                y: (parent.height / 2 - height / 2) + Math.cos(window.globalOrbitAngle * 1.5) * window.s(-100)
                 opacity: 0.06
                 color: window.ambientSecondary
             }
@@ -258,8 +271,8 @@ Item {
                     model: 3
                     Rectangle {
                         anchors.centerIn: parent
-                        anchors.verticalCenterOffset: -70
-                        width: 320 + (index * 170)
+                        anchors.verticalCenterOffset: window.s(-70)
+                        width: window.s(320) + (index * window.s(170))
                         height: width
                         radius: width / 2
                         color: "transparent"
@@ -277,29 +290,29 @@ Item {
                 id: uptimeRow
                 anchors.top: parent.top
                 anchors.left: parent.left
-                anchors.margins: 25
-                spacing: 6
+                anchors.margins: window.s(25)
+                spacing: window.s(6)
                 z: 10
                 
-                transform: Translate { y: -20 * (1.0 - introTop) }
+                transform: Translate { y: window.s(-20) * (1.0 - introTop) }
                 opacity: introTop
                 
                 // Hours Box
                 Rectangle {
-                    width: 44; height: 48; radius: 10
+                    width: window.s(44); height: window.s(48); radius: window.s(10)
                     color: window.surface0; border.color: window.surface1; border.width: 1
                     
-                    Rectangle { anchors.fill: parent; radius: 10; color: window.ambientPrimary; opacity: 0.05; }
+                    Rectangle { anchors.fill: parent; radius: window.s(10); color: window.ambientPrimary; opacity: 0.05; }
                     Column {
                         anchors.centerIn: parent
                         Text { 
                             text: window.upHours.toString().padStart(2, '0')
-                            font.pixelSize: 18; font.family: "JetBrains Mono"; font.weight: Font.Black
+                            font.pixelSize: window.s(18); font.family: "JetBrains Mono"; font.weight: Font.Black
                             color: window.ambientPrimary
                             anchors.horizontalCenter: parent.horizontalCenter 
                         }
                         Text { 
-                            text: "HR"; font.pixelSize: 8; font.family: "JetBrains Mono"; font.weight: Font.Bold
+                            text: "HR"; font.pixelSize: window.s(8); font.family: "JetBrains Mono"; font.weight: Font.Bold
                             color: window.subtext0; anchors.horizontalCenter: parent.horizontalCenter 
                         }
                     }
@@ -309,7 +322,7 @@ Item {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: ":"
-                    font.pixelSize: 22; font.family: "JetBrains Mono"; font.weight: Font.Black
+                    font.pixelSize: window.s(22); font.family: "JetBrains Mono"; font.weight: Font.Black
                     color: window.ambientPrimary
                     
                     opacity: uptimePulse
@@ -323,20 +336,20 @@ Item {
 
                 // Mins Box
                 Rectangle {
-                    width: 44; height: 48; radius: 10
+                    width: window.s(44); height: window.s(48); radius: window.s(10)
                     color: window.surface0; border.color: window.surface1; border.width: 1
                     
-                    Rectangle { anchors.fill: parent; radius: 10; color: window.ambientSecondary; opacity: 0.05; }
+                    Rectangle { anchors.fill: parent; radius: window.s(10); color: window.ambientSecondary; opacity: 0.05; }
                     Column {
                         anchors.centerIn: parent
                         Text { 
                             text: window.upMins.toString().padStart(2, '0')
-                            font.pixelSize: 18; font.family: "JetBrains Mono"; font.weight: Font.Black
+                            font.pixelSize: window.s(18); font.family: "JetBrains Mono"; font.weight: Font.Black
                             color: window.ambientSecondary
                             anchors.horizontalCenter: parent.horizontalCenter 
                         }
                         Text { 
-                            text: "MIN"; font.pixelSize: 8; font.family: "JetBrains Mono"; font.weight: Font.Bold
+                            text: "MIN"; font.pixelSize: window.s(8); font.family: "JetBrains Mono"; font.weight: Font.Bold
                             color: window.subtext0; anchors.horizontalCenter: parent.horizontalCenter 
                         }
                     }
@@ -347,15 +360,15 @@ Item {
             Rectangle {
                 id: logoutBtn
                 anchors.top: parent.top; anchors.right: parent.right
-                anchors.margins: 25
+                anchors.margins: window.s(25)
                 z: 10
-                width: logoutMa.containsMouse ? 44 + usernameText.implicitWidth + 12 : 44
-                height: 44; radius: 14
+                width: logoutMa.containsMouse ? window.s(44) + usernameText.implicitWidth + window.s(12) : window.s(44)
+                height: window.s(44); radius: window.s(14)
                 color: logoutMa.containsMouse ? window.surface0 : "transparent"
                 border.color: logoutMa.containsMouse ? window.surface1 : "transparent"
                 clip: true
                 
-                transform: Translate { y: -20 * (1.0 - introTop) }
+                transform: Translate { y: window.s(-20) * (1.0 - introTop) }
                 opacity: introTop
 
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
@@ -364,16 +377,16 @@ Item {
 
                 Row {
                     anchors.right: parent.right
-                    anchors.rightMargin: 13
+                    anchors.rightMargin: window.s(13)
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 12
+                    spacing: window.s(12)
 
                     Text {
                         id: usernameText
                         text: window.currentUserName
                         font.family: "JetBrains Mono"
                         font.weight: Font.Bold
-                        font.pixelSize: 14
+                        font.pixelSize: window.s(14)
                         color: window.text
                         anchors.verticalCenter: parent.verticalCenter
                         opacity: logoutMa.containsMouse ? 1.0 : 0.0
@@ -381,7 +394,7 @@ Item {
                     }
 
                     Text {
-                        font.family: "Iosevka Nerd Font"; font.pixelSize: 18
+                        font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18)
                         color: logoutMa.containsMouse ? window.red : window.overlay0
                         text: "󰍃"
                         anchors.verticalCenter: parent.verticalCenter
@@ -406,18 +419,18 @@ Item {
             Grid {
                 id: sysGrid
                 columns: 2
-                spacing: 25
+                spacing: window.s(25)
                 anchors.centerIn: parent
-                anchors.verticalCenterOffset: -85 
+                anchors.verticalCenterOffset: window.s(-85) 
                 z: 1
 
                 opacity: introCore
-                transform: Translate { y: 25 * (1 - introCore) }
+                transform: Translate { y: window.s(25) * (1 - introCore) }
                 scale: 0.9 + (0.1 * introCore)
 
                 // 1. CPU Orb
                 Item {
-                    id: cpuOrb; width: 145; height: 145
+                    id: cpuOrb; width: window.s(145); height: window.s(145)
                     property real animVal: window.cpuUsage
                     Behavior on animVal { NumberAnimation { duration: 1200; easing.type: Easing.OutQuint } }
                     onAnimValChanged: cpuCanvas.requestPaint()
@@ -428,7 +441,7 @@ Item {
                     // Individual Aura - Fixed Overlap
                     Rectangle {
                         anchors.centerIn: parent
-                        width: parent.width + (cpuMa.containsMouse ? 16 : 4) 
+                        width: parent.width + (cpuMa.containsMouse ? window.s(16) : window.s(4)) 
                         height: width; radius: width / 2
                         color: window.blue
                         opacity: cpuMa.containsMouse ? 0.25 : 0.08
@@ -440,29 +453,29 @@ Item {
                         id: cpuCanvas; anchors.fill: parent; rotation: 180
                         onPaint: {
                             var ctx = getContext("2d"); ctx.clearRect(0, 0, width, height);
-                            var cX = width/2; var cY = height/2; var rad = (width/2)-8;
+                            var cX = width/2; var cY = height/2; var rad = (width/2)-window.s(8);
                             var eA = (Math.min(100, Math.max(0, parent.animVal)) / 100) * 2 * Math.PI;
-                            ctx.lineCap = "round"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
+                            ctx.lineCap = "round"; ctx.lineWidth = window.s(8); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
                             ctx.strokeStyle = window.surface0.toString(); ctx.stroke();
                             var grad = ctx.createLinearGradient(0, height, width, 0); grad.addColorStop(0, window.blue.toString()); grad.addColorStop(1, window.sapphire.toString());
-                            ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
+                            ctx.lineWidth = window.s(14); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
                         }
                     }
                     ColumnLayout {
                         anchors.centerIn: parent; spacing: 0
                         RowLayout {
-                            Layout.alignment: Qt.AlignHCenter; spacing: 4
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.blue; text: "" }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: window.text; text: Math.round(cpuOrb.animVal) + "%" }
+                            Layout.alignment: Qt.AlignHCenter; spacing: window.s(4)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.blue; text: "" }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(28); color: window.text; text: Math.round(cpuOrb.animVal) + "%" }
                         }
-                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: window.subtext0; text: "CPU LOAD" }
+                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(12); color: window.subtext0; text: "CPU LOAD" }
                     }
                     MouseArea { id: cpuMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                 }
 
                 // 2. RAM Orb
                 Item {
-                    id: ramOrb; width: 145; height: 145
+                    id: ramOrb; width: window.s(145); height: window.s(145)
                     property real animVal: window.ramUsage
                     Behavior on animVal { NumberAnimation { duration: 1200; easing.type: Easing.OutQuint } }
                     onAnimValChanged: ramCanvas.requestPaint()
@@ -473,7 +486,7 @@ Item {
                     // Individual Aura - Fixed Overlap
                     Rectangle {
                         anchors.centerIn: parent
-                        width: parent.width + (ramMa.containsMouse ? 16 : 4)
+                        width: parent.width + (ramMa.containsMouse ? window.s(16) : window.s(4))
                         height: width; radius: width / 2
                         color: window.mauve
                         opacity: ramMa.containsMouse ? 0.25 : 0.08
@@ -485,29 +498,29 @@ Item {
                         id: ramCanvas; anchors.fill: parent; rotation: 180
                         onPaint: {
                             var ctx = getContext("2d"); ctx.clearRect(0, 0, width, height);
-                            var cX = width/2; var cY = height/2; var rad = (width/2)-8;
+                            var cX = width/2; var cY = height/2; var rad = (width/2)-window.s(8);
                             var eA = (Math.min(100, Math.max(0, parent.animVal)) / 100) * 2 * Math.PI;
-                            ctx.lineCap = "round"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
+                            ctx.lineCap = "round"; ctx.lineWidth = window.s(8); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
                             ctx.strokeStyle = window.surface0.toString(); ctx.stroke();
                             var grad = ctx.createLinearGradient(0, height, width, 0); grad.addColorStop(0, window.mauve.toString()); grad.addColorStop(1, window.pink.toString());
-                            ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
+                            ctx.lineWidth = window.s(14); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
                         }
                     }
                     ColumnLayout {
                         anchors.centerIn: parent; spacing: 0
                         RowLayout {
-                            Layout.alignment: Qt.AlignHCenter; spacing: 4
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.mauve; text: "󰍛" }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: window.text; text: Math.round(ramOrb.animVal) + "%" }
+                            Layout.alignment: Qt.AlignHCenter; spacing: window.s(4)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.mauve; text: "󰍛" }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(28); color: window.text; text: Math.round(ramOrb.animVal) + "%" }
                         }
-                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: window.subtext0; text: "MEMORY" }
+                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(12); color: window.subtext0; text: "MEMORY" }
                     }
                     MouseArea { id: ramMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                 }
 
                 // 3. DISK Orb
                 Item {
-                    id: diskOrb; width: 145; height: 145
+                    id: diskOrb; width: window.s(145); height: window.s(145)
                     property real animVal: window.diskUsage
                     Behavior on animVal { NumberAnimation { duration: 1200; easing.type: Easing.OutQuint } }
                     onAnimValChanged: diskCanvas.requestPaint()
@@ -518,7 +531,7 @@ Item {
                     // Individual Aura - Fixed Overlap
                     Rectangle {
                         anchors.centerIn: parent
-                        width: parent.width + (diskMa.containsMouse ? 16 : 4)
+                        width: parent.width + (diskMa.containsMouse ? window.s(16) : window.s(4))
                         height: width; radius: width / 2
                         color: window.peach
                         opacity: diskMa.containsMouse ? 0.25 : 0.08
@@ -530,29 +543,29 @@ Item {
                         id: diskCanvas; anchors.fill: parent; rotation: 180
                         onPaint: {
                             var ctx = getContext("2d"); ctx.clearRect(0, 0, width, height);
-                            var cX = width/2; var cY = height/2; var rad = (width/2)-8;
+                            var cX = width/2; var cY = height/2; var rad = (width/2)-window.s(8);
                             var eA = (Math.min(100, Math.max(0, parent.animVal)) / 100) * 2 * Math.PI;
-                            ctx.lineCap = "round"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
+                            ctx.lineCap = "round"; ctx.lineWidth = window.s(8); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
                             ctx.strokeStyle = window.surface0.toString(); ctx.stroke();
                             var grad = ctx.createLinearGradient(0, height, width, 0); grad.addColorStop(0, window.peach.toString()); grad.addColorStop(1, window.yellow.toString());
-                            ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
+                            ctx.lineWidth = window.s(14); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
                         }
                     }
                     ColumnLayout {
                         anchors.centerIn: parent; spacing: 0
                         RowLayout {
-                            Layout.alignment: Qt.AlignHCenter; spacing: 4
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.peach; text: "󰋊" }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: window.text; text: Math.round(diskOrb.animVal) + "%" }
+                            Layout.alignment: Qt.AlignHCenter; spacing: window.s(4)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.peach; text: "󰋊" }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(28); color: window.text; text: Math.round(diskOrb.animVal) + "%" }
                         }
-                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: window.subtext0; text: "STORAGE" }
+                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(12); color: window.subtext0; text: "STORAGE" }
                     }
                     MouseArea { id: diskMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                 }
 
                 // 4. TEMP Orb
                 Item {
-                    id: tempOrb; width: 145; height: 145
+                    id: tempOrb; width: window.s(145); height: window.s(145)
                     property real animVal: window.sysTemp
                     Behavior on animVal { NumberAnimation { duration: 1200; easing.type: Easing.OutQuint } }
                     onAnimValChanged: tempCanvas.requestPaint()
@@ -563,7 +576,7 @@ Item {
                     // Individual Aura - Fixed Overlap
                     Rectangle {
                         anchors.centerIn: parent
-                        width: parent.width + (tempMa.containsMouse ? 16 : 4)
+                        width: parent.width + (tempMa.containsMouse ? window.s(16) : window.s(4))
                         height: width; radius: width / 2
                         color: window.red
                         opacity: tempMa.containsMouse ? 0.25 : 0.08
@@ -575,22 +588,22 @@ Item {
                         id: tempCanvas; anchors.fill: parent; rotation: 180
                         onPaint: {
                             var ctx = getContext("2d"); ctx.clearRect(0, 0, width, height);
-                            var cX = width/2; var cY = height/2; var rad = (width/2)-8;
+                            var cX = width/2; var cY = height/2; var rad = (width/2)-window.s(8);
                             var eA = (Math.min(100, Math.max(0, parent.animVal)) / 100) * 2 * Math.PI;
-                            ctx.lineCap = "round"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
+                            ctx.lineCap = "round"; ctx.lineWidth = window.s(8); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, 2*Math.PI); 
                             ctx.strokeStyle = window.surface0.toString(); ctx.stroke();
                             var grad = ctx.createLinearGradient(0, height, width, 0); grad.addColorStop(0, window.red.toString()); grad.addColorStop(1, window.maroon.toString());
-                            ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
+                            ctx.lineWidth = window.s(14); ctx.beginPath(); ctx.arc(cX, cY, rad, 0, eA); ctx.strokeStyle = grad; ctx.stroke();
                         }
                     }
                     ColumnLayout {
                         anchors.centerIn: parent; spacing: 0
                         RowLayout {
-                            Layout.alignment: Qt.AlignHCenter; spacing: 4
-                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: 18; color: window.red; text: "" }
-                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 28; color: window.text; text: Math.round(tempOrb.animVal) + "°" }
+                            Layout.alignment: Qt.AlignHCenter; spacing: window.s(4)
+                            Text { font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18); color: window.red; text: "" }
+                            Text { font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(28); color: window.text; text: Math.round(tempOrb.animVal) + "°" }
                         }
-                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: 12; color: window.subtext0; text: "SYSTEM TEMP" }
+                        Text { Layout.alignment: Qt.AlignHCenter; font.family: "JetBrains Mono"; font.weight: Font.Bold; font.pixelSize: window.s(12); color: window.subtext0; text: "SYSTEM TEMP" }
                     }
                     MouseArea { id: tempMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                 }
@@ -604,39 +617,39 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.margins: 25
-                spacing: 15
+                anchors.margins: window.s(25)
+                spacing: window.s(15)
 
                 // 1. HARDWARE CONTROLS DOCK (Sliders)
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 96
-                    radius: 14
+                    Layout.preferredHeight: window.s(96)
+                    radius: window.s(14)
                     color: window.surface0
                     border.color: window.surface1
                     border.width: 1
 
                     opacity: introSliders
-                    transform: Translate { y: 20 * (1.0 - introSliders) }
+                    transform: Translate { y: window.s(20) * (1.0 - introSliders) }
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 14
-                        spacing: 12
+                        anchors.margins: window.s(14)
+                        spacing: window.s(12)
 
                         // Brightness Slider
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 15
+                            spacing: window.s(15)
 
                             Item {
-                                Layout.preferredWidth: 32
-                                Layout.preferredHeight: 32
+                                Layout.preferredWidth: window.s(32)
+                                Layout.preferredHeight: window.s(32)
                                 Text {
                                     anchors.centerIn: parent
                                     text: window.sysBrightness > 66 ? "󰃠" : (window.sysBrightness > 33 ? "󰃟" : "󰃞")
                                     font.family: "Iosevka Nerd Font"
-                                    font.pixelSize: 22
+                                    font.pixelSize: window.s(22)
                                     color: window.blue
                                     Behavior on color { ColorAnimation { duration: 200 } }
                                 }
@@ -644,7 +657,7 @@ Item {
 
                             Item {
                                 Layout.fillWidth: true
-                                height: 18
+                                height: window.s(18)
                                 
                                 Timer {
                                     id: briCmdThrottle
@@ -660,7 +673,7 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 9
+                                    radius: window.s(9)
                                     color: window.surface1
                                     border.color: window.surface2
                                     border.width: 1
@@ -669,7 +682,7 @@ Item {
                                     Rectangle {
                                         height: parent.height
                                         width: parent.width * (window.sysBrightness / 100)
-                                        radius: 9
+                                        radius: window.s(9)
                                         opacity: briMa.containsMouse ? 1.0 : 0.85
                                         Behavior on opacity { NumberAnimation { duration: 200 } }
                                         Behavior on width { enabled: !window.isDraggingBri; NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
@@ -703,12 +716,12 @@ Item {
                         // Volume Slider
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 15
+                            spacing: window.s(15)
 
                             Rectangle {
-                                Layout.preferredWidth: 32
-                                Layout.preferredHeight: 32
-                                radius: 16
+                                Layout.preferredWidth: window.s(32)
+                                Layout.preferredHeight: window.s(32)
+                                radius: window.s(16)
                                 color: volIconMa.containsMouse ? window.surface1 : "transparent"
                                 border.color: volIconMa.containsMouse ? window.profileStart : "transparent"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -718,7 +731,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: window.sysMuted || window.sysVolume === 0 ? "󰖁" : (window.sysVolume > 50 ? "󰕾" : "󰖀")
                                     font.family: "Iosevka Nerd Font"
-                                    font.pixelSize: 22
+                                    font.pixelSize: window.s(22)
                                     color: window.sysMuted ? window.overlay0 : window.profileStart
                                     Behavior on color { ColorAnimation { duration: 200 } }
                                 }
@@ -739,7 +752,7 @@ Item {
 
                             Item {
                                 Layout.fillWidth: true
-                                height: 18
+                                height: window.s(18)
                                 
                                 Timer {
                                     id: volCmdThrottle
@@ -759,7 +772,7 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 9
+                                    radius: window.s(9)
                                     color: window.surface1
                                     border.color: window.surface2
                                     border.width: 1
@@ -768,7 +781,7 @@ Item {
                                     Rectangle {
                                         height: parent.height
                                         width: parent.width * (window.sysVolume / 100)
-                                        radius: 9
+                                        radius: window.s(9)
                                         opacity: window.sysMuted ? 0.5 : (volMa.containsMouse ? 1.0 : 0.85)
                                         Behavior on opacity { NumberAnimation { duration: 200 } }
                                         Behavior on width { enabled: !window.isDraggingVol; NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
@@ -804,8 +817,8 @@ Item {
                 // 2. SYSTEM ACTIONS DOCK
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 75
-                    spacing: 12
+                    Layout.preferredHeight: window.s(75)
+                    spacing: window.s(12)
                     
                     Repeater {
                         model: ListModel {
@@ -819,10 +832,10 @@ Item {
                             id: actionCapsule
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            radius: 14
+                            radius: window.s(14)
 
                             opacity: introActions
-                            transform: Translate { y: 30 * (1.0 - introActions) + (index * 12 * (1.0 - introActions)) }
+                            transform: Translate { y: window.s(30) * (1.0 - introActions) + (index * window.s(12) * (1.0 - introActions)) }
                             
                             property color c1: window[baseColor] || window.surface1
                             property color c2: Qt.lighter(c1, 1.2)
@@ -858,7 +871,7 @@ Item {
                                     ctx.clearRect(0, 0, width, height);
                                     if (actionCapsule.fillLevel <= 0.001) return;
                                     
-                                    var r = 14; 
+                                    var r = window.s(14); 
                                     var fillY = height * (1.0 - actionCapsule.fillLevel);
                                     ctx.save();
                                     ctx.beginPath();
@@ -870,7 +883,7 @@ Item {
                                     ctx.beginPath();
                                     ctx.moveTo(0, fillY);
                                     if (actionCapsule.fillLevel < 0.99) {
-                                        var waveAmp = 10 * Math.sin(actionCapsule.fillLevel * Math.PI); 
+                                        var waveAmp = window.s(10) * Math.sin(actionCapsule.fillLevel * Math.PI); 
                                         var cp1y = fillY + Math.sin(wavePhase) * waveAmp;
                                         var cp2y = fillY + Math.cos(wavePhase + Math.PI) * waveAmp;
                                         ctx.bezierCurveTo(width * 0.33, cp2y, width * 0.66, cp1y, width, fillY);
@@ -887,7 +900,7 @@ Item {
                             }
 
                             Rectangle {
-                                anchors.fill: parent; radius: 14; color: "#ffffff"
+                                anchors.fill: parent; radius: window.s(14); color: "#ffffff"
                                 opacity: actionCapsule.flashOpacity
                                 PropertyAnimation on opacity { id: cardFlashAnim; to: 0; duration: 500; easing.type: Easing.OutExpo }
                             }
@@ -895,7 +908,7 @@ Item {
                             Text { 
                                 anchors.centerIn: parent
                                 font.family: "Iosevka Nerd Font"
-                                font.pixelSize: 24
+                                font.pixelSize: window.s(24)
                                 color: actionMa.containsMouse ? window.text : window.subtext0
                                 text: icon
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -910,7 +923,7 @@ Item {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     y: (actionCapsule.height / 2) - (height / 2) - (actionCapsule.height - parent.height)
                                     font.family: "Iosevka Nerd Font"
-                                    font.pixelSize: 24
+                                    font.pixelSize: window.s(24)
                                     color: window.crust
                                     text: icon 
                                 }
@@ -961,25 +974,25 @@ Item {
                 // 3. POWER PROFILES DOCK
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 54
-                    radius: 14
+                    Layout.preferredHeight: window.s(54)
+                    radius: window.s(14)
                     color: window.surface0 
                     border.color: window.surface1
                     border.width: 1
 
                     opacity: introProfiles
-                    transform: Translate { y: 20 * (1.0 - introProfiles) }
+                    transform: Translate { y: window.s(20) * (1.0 - introProfiles) }
                     
                     Rectangle {
                         id: sliderPill
-                        width: (parent.width - 2) / 3 
-                        height: parent.height - 2
-                        y: 1
-                        radius: 10
+                        width: (parent.width - window.s(2)) / 3 
+                        height: parent.height - window.s(2)
+                        y: window.s(1)
+                        radius: window.s(10)
                         x: {
-                            if (window.powerProfile === "performance") return 1;
-                            if (window.powerProfile === "balanced") return width + 1;
-                            return (width * 2) + 1;
+                            if (window.powerProfile === "performance") return window.s(1);
+                            if (window.powerProfile === "balanced") return width + window.s(1);
+                            return (width * 2) + window.s(1);
                         }
                         
                         Behavior on x { NumberAnimation { duration: 400; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
@@ -1008,15 +1021,15 @@ Item {
                                 
                                 RowLayout {
                                     anchors.centerIn: parent
-                                    spacing: 8
+                                    spacing: window.s(8)
                                     Text {
-                                        font.family: "Iosevka Nerd Font"; font.pixelSize: 18
+                                        font.family: "Iosevka Nerd Font"; font.pixelSize: window.s(18)
                                         color: window.powerProfile === name ? window.crust : (profileMa.containsMouse ? window.text : window.subtext0)
                                         text: icon
                                         Behavior on color { ColorAnimation { duration: 200 } }
                                     }
                                     Text {
-                                        font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: 13
+                                        font.family: "JetBrains Mono"; font.weight: Font.Black; font.pixelSize: window.s(13)
                                         color: window.powerProfile === name ? window.crust : (profileMa.containsMouse ? window.text : window.subtext0)
                                         text: label
                                         Behavior on color { ColorAnimation { duration: 200 } }
