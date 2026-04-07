@@ -316,10 +316,16 @@ Item {
 
     function getCleanName(name) {
         if (!name) return "";
-        // Decode URI components in case the IPC passed a URL-encoded string
         let clean = decodeURIComponent(String(name));
-        // Strip out the absolute path directories to get just the file name
+        
+        // 1. Strip URL protocols
+        clean = clean.replace(/^file:\/\//g, "");
+        // 2. Handle multi-monitor outputs (take the first line) and strip trailing/leading bash artifacts (quotes, spaces)
+        clean = clean.split('\n')[0].replace(/['"\s]+$/g, "").trim();
+        // 3. Extract the purely base filename
         let baseName = clean.substring(clean.lastIndexOf('/') + 1);
+        
+        // 4. Strip the video prefix
         return baseName.startsWith("000_") ? baseName.substring(4) : baseName;
     }
 
@@ -346,12 +352,16 @@ Item {
         if (targetIndex !== -1 && targetIndex < targetModel.count) {
             window.isModelChanging = true;
             
-            if (requirePositioning) {
-                view.forceLayout();
-                view.positionViewAtIndex(targetIndex, ListView.Center);
-            }
-            
+            // Snap the logical index immediately
             view.currentIndex = targetIndex;
+            
+            if (requirePositioning) {
+                // Defer visual positioning to ensure QML has calculated the dynamic widths
+                Qt.callLater(() => {
+                    view.forceLayout();
+                    view.positionViewAtIndex(targetIndex, ListView.Center);
+                });
+            }
             
             if (isSearchRestore) {
                 window.searchIndexRestored = true;
