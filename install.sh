@@ -1049,11 +1049,11 @@ fi
 # Enable Pipewire natively for the user environment
 # Using --global prevents silent failures when testers run this script from a TTY (without an active DBUS session)
 sudo systemctl --global enable pipewire wireplumber pipewire-pulse 2>/dev/null || true
-sudo systemctl enable --now swayosd-libinput-backend.service
 # Attempt to start it locally if DBUS is available (fails silently in TTY, which is fine since --global catches the next login)
 systemctl --user start pipewire wireplumber pipewire-pulse 2>/dev/null || true
 
 # --- Create and enable SwayOSD user service ---
+sudo systemctl enable --now swayosd-libinput-backend.service
 SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
 mkdir -p "$SYSTEMD_USER_DIR"
 cat <<EOF > "$SYSTEMD_USER_DIR/swayosd.service"
@@ -1061,11 +1061,14 @@ cat <<EOF > "$SYSTEMD_USER_DIR/swayosd.service"
 Description=SwayOSD Service
 PartOf=graphical-session.target
 After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/env swayosd-server --top-margin 0.9 --style $HOME/.config/swayosd/style.css
+ExecStart=/usr/bin/swayosd-server --top-margin 0.9 --style ${HOME}/.config/swayosd/style.css
 Restart=on-failure
+RestartSec=2
+StartLimitIntervalSec=0
 
 [Install]
 WantedBy=graphical-session.target
@@ -1073,7 +1076,8 @@ EOF
 
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable swayosd.service 2>/dev/null || true
-systemctl --user start swayosd.service 2>/dev/null || true
+# Removed the immediate 'start' command. Systemd will now gracefully 
+# start it on its own once Hyprland/Wayland is actually ready.
 printf "  -> SwayOSD user service configured %-17s ${C_GREEN}[ OK ]${RESET}\n" ""
 
 if [ "$INSTALL_ZSH" = true ] && command -v zsh &> /dev/null; then
