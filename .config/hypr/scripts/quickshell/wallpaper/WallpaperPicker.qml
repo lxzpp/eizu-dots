@@ -79,7 +79,7 @@ Item {
         { name: "Search", hex: "", label: "Search" } 
     ]
 
-    /// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // GLOBAL ACTION: APPLY WALLPAPER
     // -------------------------------------------------------------------------
     function applyWallpaper(safeFileName, isVideo) {
@@ -104,7 +104,7 @@ Item {
         const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)];
         
         // 3. AUTO-REVIVE COMMAND: Ensure daemon is alive before sending IPC commands
-        const ensureDaemonCmd = `if ! pgrep -x "swww-daemon" > /dev/null; then awww-daemon >/dev/null 2>&1 & sleep 0.2; fi`;
+        const ensureDaemonCmd = `if ! pgrep -x "swww-daemon" > /dev/null; then swww-daemon >/dev/null 2>&1 & sleep 0.2; fi`;
         
         if (window.currentFilter === "Search" && window.hasSearched) {
             let alreadyExists = window.isDownloaded(safeFileName);
@@ -129,7 +129,7 @@ Item {
                         ${ensureDaemonCmd}
                         
                         # Run matugen completely detached so it doesn't block swww execution
-                        ( matugen image "$FINAL_THUMB" --source-color-index 0 || true; bash "$RELOAD_SCRIPT" || true ) &
+                        ( matugen image "$FINAL_THUMB" || true; bash "$RELOAD_SCRIPT" || true ) &
                         MATUGEN_PID=$!
                         
                         # DETERMINISTIC LOOP
@@ -178,7 +178,7 @@ Item {
                             
                             ${ensureDaemonCmd}
                             
-                            ( matugen image "$FINAL_THUMB" --source-color-index 0 || true; bash "$RELOAD_SCRIPT" || true ) &
+                            ( matugen image "$FINAL_THUMB" || true; bash "$RELOAD_SCRIPT" || true ) &
                             MATUGEN_PID=$!
                             
                             # DETERMINISTIC LOOP
@@ -235,7 +235,7 @@ Item {
                 ${lockBgCmd} || true
                 pkill mpvpaper || true
                 
-                ( matugen image "$THUMB_FILE" --source-color-index 0 || true; bash "$RELOAD_SCRIPT" || true ) &
+                ( matugen image "$THUMB_FILE" || true; bash "$RELOAD_SCRIPT" || true ) &
                 MATUGEN_PID=$!
                 
                 ${wallpaperCmd}
@@ -245,7 +245,6 @@ Item {
         `
         Quickshell.execDetached(["bash", "-c", fullScript])
     }    
-
     // -------------------------------------------------------------------------
     // PERSISTENT SETTINGS
     // -------------------------------------------------------------------------
