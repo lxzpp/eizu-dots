@@ -329,6 +329,7 @@ Item {
     property var scheduleData: { "header": "Loading Schedule...", "link": "", "lessons": [] }
 
     // Check if the schedule manager script actually exists before doing anything
+    // Check if the schedule manager script actually exists before doing anything
     Process {
         id: schedulePathChecker
         command: ["bash", "-c", "[ -f '" + window.scriptsDir + "/schedule/schedule_manager.sh' ] && echo 1 || echo 0"]
@@ -341,17 +342,18 @@ Item {
                 } else {
                     window.scheduleModuleExists = false;
                     
-                    // --- DYNAMICALLY SHRINK THE WINDOW ---
-                    // The registry defaults to s(750). The bottom section is s(240).
-                    // We shrink the Quickshell Window wrapper to s(510) to crop it out.
-                    if (Window.window) {
-                        Window.window.height = window.s(510);
+                    // --- DYNAMICALLY SHRINK THE MASTER WINDOW ---
+                    // Reach out to the global 'masterWindow' ID and update both
+                    // the morphing wrapper (animH) and the content wrapper (targetH)
+                    if (typeof masterWindow !== "undefined") {
+                        let newHeight = window.s(510);
+                        masterWindow.animH = newHeight;
+                        masterWindow.targetH = newHeight;
                     }
                 }
             }
         }
     }
-
     Process {
         id: schedulePoller
         command: ["bash", window.scriptsDir + "/schedule/schedule_manager.sh"]

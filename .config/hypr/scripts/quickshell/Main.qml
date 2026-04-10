@@ -53,6 +53,10 @@ PanelWindow {
     property real animH: 1
     property real animX: 0
     property real animY: 0
+    
+    // NEW: Explicit targets for the inner content wrapper so widgets can override them dynamically
+    property real targetW: 1
+    property real targetH: 1
 
     function getLayout(name) {
         return Registry.getLayout(name, 0, 0, Screen.width, Screen.height);
@@ -76,6 +80,8 @@ PanelWindow {
             masterWindow.animY = t.ry;
             masterWindow.animW = t.w;
             masterWindow.animH = t.h;
+            masterWindow.targetW = t.w;
+            masterWindow.targetH = t.h;
         }
     }
     // ---------------------------------------
@@ -106,8 +112,9 @@ PanelWindow {
 
         Item {
             anchors.centerIn: parent
-            width: masterWindow.currentActive !== "hidden" && getLayout(masterWindow.currentActive) ? getLayout(masterWindow.currentActive).w : 1
-            height: masterWindow.currentActive !== "hidden" && getLayout(masterWindow.currentActive) ? getLayout(masterWindow.currentActive).h : 1
+            // CHANGE: Now uses the overrideable properties instead of strict registry bindings
+            width: masterWindow.targetW
+            height: masterWindow.targetH
 
             StackView {
                 id: widgetStack
@@ -141,7 +148,7 @@ PanelWindow {
 
     function switchWidget(newWidget, arg) {
         // FIX 1: Immediately update the system state file so the bash manager 
-        // doesn't read stale data during the 250ms morph animations.
+        // doesn't read stale data during the morph animations.
         Quickshell.execDetached(["bash", "-c", "echo '" + newWidget + "' > /tmp/qs_active_widget"]);
 
         prepTimer.stop();
@@ -217,6 +224,8 @@ PanelWindow {
             masterWindow.animY = t.ry;
             masterWindow.animW = t.w;
             masterWindow.animH = t.h;
+            masterWindow.targetW = t.w;
+            masterWindow.targetH = t.h;
 
             let props = newWidget === "wallpaper" ? { "widgetArg": newArg } : {};
             widgetStack.replace(t.comp, props, StackView.Immediate);
@@ -253,6 +262,8 @@ PanelWindow {
         masterWindow.animY = t.ry;
         masterWindow.animW = t.w;
         masterWindow.animH = t.h;
+        masterWindow.targetW = t.w;
+        masterWindow.targetH = t.h;
         
         let props = newWidget === "wallpaper" ? { "widgetArg": arg } : {};
 
