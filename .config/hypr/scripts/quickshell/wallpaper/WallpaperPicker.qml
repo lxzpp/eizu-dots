@@ -98,13 +98,13 @@ Item {
 
         const escapeBash = (str) => String(str).replace(/(["\\$`])/g, '\\$1');
         
-        // 2. HARDWARE ADAPTATION: Force Vulkan rendering on NVIDIA to prevent shader segfaults
-        const isNvidia = Quickshell.env("__GLX_VENDOR_LIBRARY_NAME") === "nvidia";
-        const renderOverride = isNvidia ? "env WGPU_BACKEND=vulkan " : "";
+        // 2. HARDWARE ADAPTATION: Force Vulkan rendering
+        // FIX: Hardcoded to bypass the Quickshell.env check since the backend is required.
+        const renderOverride = "env WGPU_BACKEND=vulkan ";
         const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)];
         
         // 3. AUTO-REVIVE COMMAND: Ensure daemon is alive before sending IPC commands
-        const ensureDaemonCmd = `if ! pgrep -x "swww-daemon" > /dev/null; then swww-daemon >/dev/null 2>&1 & sleep 0.2; fi`;
+        const ensureDaemonCmd = `if ! pgrep -x "awww-daemon" > /dev/null; then awww-daemon >/dev/null 2>&1 & sleep 0.2; fi`;
         
         if (window.currentFilter === "Search" && window.hasSearched) {
             let alreadyExists = window.isDownloaded(safeFileName);
@@ -244,8 +244,7 @@ Item {
             ) </dev/null >/dev/null 2>&1 & disown
         `
         Quickshell.execDetached(["bash", "-c", fullScript])
-    }    
-    // -------------------------------------------------------------------------
+    }    // -------------------------------------------------------------------------
     // PERSISTENT SETTINGS
     // -------------------------------------------------------------------------
     Settings {
