@@ -3,7 +3,7 @@
 # ==============================================================================
 # Script Versioning & Initialization
 # ==============================================================================
-DOTS_VERSION="1.0.18"
+DOTS_VERSION="1.0.19"
 VERSION_FILE="$HOME/.local/state/imperative-dots-version"
 
 # Global Variables & Initial States (Defaults)
@@ -24,6 +24,8 @@ DRIVER_PKGS=()
 HAS_NVIDIA_PROPRIETARY=false
 LAST_COMMIT=""
 KEEP_OLD_ENV=true # Default to preserving existing weather config
+
+ENABLE_TELEMETRY=true # Default telemetry state to ON
 
 # Submenu Completion Tracking
 VISITED_PKGS=false
@@ -166,15 +168,29 @@ fi
 WORKER_URL="https://dots-telemetry.ilyamiro-work.workers.dev"
 
 send_telemetry() {
+    local mode=$1
     if [[ -n "$WORKER_URL" && "$WORKER_URL" != *"YOUR_USERNAME"* ]]; then
         
-        local ram=$(awk '/MemTotal/ {printf "%.1f GB", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "Unknown")
-        local kernel=$(uname -r 2>/dev/null || echo "Unknown")
-        local current_de=${XDG_CURRENT_DESKTOP:-"TTY / Unknown"}
-
-        # Construct a simple, clean JSON object to send to the Worker
-        local payload=$(cat <<EOF
+        # Mode 1: Just opened the script (No PII/Hardware info)
+        if [[ "$mode" == "init" ]]; then
+            local payload=$(cat <<EOF
 {
+  "type": "init",
+  "version": "${DOTS_VERSION}"
+}
+EOF
+)
+            curl -X POST -H "Content-Type: application/json" -d "$payload" "$WORKER_URL" -s -o /dev/null &
+        
+        # Mode 2: Started Installation with Telemetry Enabled
+        elif [[ "$mode" == "full" && "$ENABLE_TELEMETRY" == true ]]; then
+            local ram=$(awk '/MemTotal/ {printf "%.1f GB", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "Unknown")
+            local kernel=$(uname -r 2>/dev/null || echo "Unknown")
+            local current_de=${XDG_CURRENT_DESKTOP:-"TTY / Unknown"}
+
+            local payload=$(cat <<EOF
+{
+  "type": "full",
   "version": "${DOTS_VERSION}",
   "os": "${OS_NAME//\"/\\\"}",
   "kernel": "${kernel//\"/\\\"}",
@@ -185,12 +201,13 @@ send_telemetry() {
 }
 EOF
 )
-        # Send data to Cloudflare Worker, which securely handles the Discord ping
-        curl -X POST -H "Content-Type: application/json" -d "$payload" "$WORKER_URL" -s -o /dev/null &
+            curl -X POST -H "Content-Type: application/json" -d "$payload" "$WORKER_URL" -s -o /dev/null &
+        fi
     fi
 }
 
-send_telemetry
+# Ping the worker instantly to show the script was executed (No hardware info sent here)
+send_telemetry "init"
 
 # ==============================================================================
 # Interactive TUI Functions
@@ -646,6 +663,68 @@ set_weather_api() {
     done
 }
 
+manage_telemetry() {
+    while true; do
+        draw_header
+        echo -e "${BOLD}${C_CYAN}=== Telemetry Configuration ===${RESET}\n"
+        echo -e "To help improve this dotfile environment, this script can send"
+        echo -e "anonymous hardware statistics when you start the installation.\n"
+        
+        echo -e "${BOLD}What is sent if enabled:${RESET}"
+        echo -e "  - Script Version (${DOTS_VERSION})"
+        echo -e "  - OS Name (${OS_NAME})"
+        echo -e "  - Kernel Version"
+        echo -e "  - Total RAM"
+        echo -e "  - Previous Desktop Environment"
+        echo -e "  - CPU Model"
+        echo -e "  - GPU Model\n"
+        
+        echo -e "${BOLD}${C_YELLOW}Absolutely NO personal data, IP addresses, or usernames are collected.${RESET}\n"
+
+        local current_status="${DIM}OFF${RESET}"
+        if [[ "$ENABLE_TELEMETRY" == true ]]; then
+            current_status="${C_GREEN}ON${RESET}"
+        fi
+
+        echo -e "Current Status: ${BOLD}$current_status${RESET}\n"
+
+        local action
+        action=$(echo -e "1. Enable Telemetry\n2. Disable Telemetry\n3. Back to Main Menu" | fzf \
+            --layout=reverse \
+            --border=rounded \
+            --margin=1,2 \
+            --height=12 \
+            --prompt=" Telemetry > " \
+            --pointer=">" \
+            --header=" Use ARROW KEYS and ENTER ")
+
+        case "$action" in
+            *"1"*)
+                ENABLE_TELEMETRY=true
+                echo -e "${C_GREEN}Telemetry Enabled. Thank you!${RESET}"
+                sleep 1
+                break
+                ;;
+            *"2"*)
+                if [[ "$ENABLE_TELEMETRY" == true ]]; then
+                    echo -n -e "\nAre you sure you want to disable telemetry? (y/n)\n${DIM}This hardware info really helps me understand compatibility and fix bugs.${RESET} "
+                    read -r confirm
+                    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                        ENABLE_TELEMETRY=false
+                        echo -e "${C_YELLOW}Telemetry Disabled.${RESET}"
+                        sleep 1.2
+                        break
+                    fi
+                else
+                    break
+                fi
+                ;;
+            *"3"*) break ;;
+            *) break ;;
+        esac
+    done
+}
+
 prompt_optional_features() {
     draw_header
     echo -e "${BOLD}${C_CYAN}=== Optional Component Setup ===${RESET}\n"
@@ -729,6 +808,7 @@ while true; do
     S_WTH=$( [ "$VISITED_WEATHER" = true ] && echo -e "${C_GREEN}[✓]${RESET}" || echo -e "${C_YELLOW}[-]${RESET}" )
     S_DRV=$( [ "$VISITED_DRIVERS" = true ] && echo -e "${C_GREEN}[✓]${RESET}" || echo -e "${C_YELLOW}[-]${RESET}" )
     S_KBD=$( [ "$VISITED_KEYBOARD" = true ] && echo -e "${C_GREEN}[✓]${RESET}" || echo -e "${C_RED}[ ]${RESET}" )
+    S_TEL=$( [ "$ENABLE_TELEMETRY" = true ] && echo -e "${C_GREEN}[ON]${RESET}" || echo -e "${DIM}[OFF]${RESET}" )
 
     if [[ -z "$WEATHER_API_KEY" ]]; then
         if [ -f "$HOME/.config/hypr/scripts/quickshell/calendar/.env" ]; then
@@ -745,8 +825,9 @@ while true; do
     MENU_ITEMS+="3. $S_WTH ${C_YELLOW}Set Weather API Key${RESET} [${API_DISPLAY}, Optional]\n"
     MENU_ITEMS+="4. $S_DRV ${C_RED}[ DRIVERS ] Setup${RESET} [${DRIVER_CHOICE}, Optional]\n"
     MENU_ITEMS+="5. $S_KBD ${C_BLUE}Keyboard Layout Setup${RESET} [${KB_LAYOUTS_DISPLAY:-$KB_LAYOUTS}]\n"
-    MENU_ITEMS+="6. ${BOLD}${C_MAGENTA}START INSTALLATION${RESET}\n"
-    MENU_ITEMS+="7. ${DIM}Exit${RESET}"
+    MENU_ITEMS+="6. $S_TEL ${C_CYAN}Telemetry Settings${RESET}\n"
+    MENU_ITEMS+="7. ${BOLD}${C_MAGENTA}START INSTALLATION${RESET}\n"
+    MENU_ITEMS+="8. ${DIM}Exit${RESET}"
 
     # We use --ansi flag in fzf so the color codes render properly inside the menu list
     MENU_OPTION=$(echo -e "$MENU_ITEMS" | fzf \
@@ -754,7 +835,7 @@ while true; do
         --layout=reverse \
         --border=rounded \
         --margin=1,2 \
-        --height=16 \
+        --height=17 \
         --prompt=" Main Menu > " \
         --pointer=">" \
         --header=" Navigate with ARROWS. Select with ENTER. ")
@@ -765,7 +846,8 @@ while true; do
         *"3"*) set_weather_api ;;
         *"4"*) manage_drivers ;;
         *"5"*) manage_keyboard ;;
-        *"6"*) 
+        *"6"*) manage_telemetry ;;
+        *"7"*) 
             if [ "$VISITED_KEYBOARD" = false ]; then
                 echo -e "\n${C_RED}[!] You must configure your Keyboard Layouts in the submenu before starting.${RESET}"
                 sleep 2.5
@@ -774,7 +856,7 @@ while true; do
             prompt_optional_features
             break 
             ;;
-        *"7"*) clear; exit 0 ;;
+        *"8"*) clear; exit 0 ;;
         *) exit 0 ;;
     esac
 done
@@ -785,6 +867,9 @@ done
 clear
 draw_header
 echo -e "${BOLD}${C_BLUE}::${RESET} ${BOLD}Starting Installation Process...${RESET}\n"
+
+# Ping the worker with the detailed hardware info (if user left Telemetry ON)
+send_telemetry "full"
 
 # Pre-authenticate sudo to prevent password prompts from breaking during piped commands
 echo -e "${C_CYAN}[ INFO ]${RESET} Requesting sudo privileges for installation..."
