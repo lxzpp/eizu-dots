@@ -109,32 +109,30 @@ Item {
     // -------------------------------------------------------------------------
     // SSOT GLOBAL SETTINGS
     // -------------------------------------------------------------------------
-    property real setUiScale: 1.0
-    property bool setOpenGuideAtStartup: true
-    property string setWallpaperDir: {
-        const dir = Quickshell.env("WALLPAPER_DIR")
-        return (dir && dir !== "") 
-        ? dir 
-        : Quickshell.env("HOME") + "/Pictures/Wallpapers"
-    }
-    property string setLanguage: ""
+    property real setUiScale: 1.0
+    property bool setOpenGuideAtStartup: true
+    property string setWallpaperDir: {
+        const dir = Quickshell.env("WALLPAPER_DIR")
+        return (dir && dir !== "") 
+        ? dir 
+        : Quickshell.env("HOME") + "/Pictures/Wallpapers"
+    }
+    property string setLanguage: ""
 
-    function saveAppSettings() {
-        let config = {
-            "uiScale": root.setUiScale,
-            "openGuideAtStartup": root.setOpenGuideAtStartup,
-            "wallpaperDir": root.setWallpaperDir,
-            "language": root.setLanguage
-        };
-        let jsonString = JSON.stringify(config, null, 2);
-        
-        let cmd = "mkdir -p ~/.config/hypr/ && echo '" + jsonString + "' > ~/.config/hypr/settings.json && " +
-                  "sed -i 's/^ *kb_layout =.*/    kb_layout = " + root.setLanguage + "/' ~/.config/hypr/hyprland.conf && " +
-                  "notify-send 'Quickshell' 'Settings Applied Successfully!'";
-                  
-        Quickshell.execDetached(["bash", "-c", cmd]);
-    }
-
+    function saveAppSettings() {
+        let config = {
+            "uiScale": root.setUiScale,
+            "openGuideAtStartup": root.setOpenGuideAtStartup,
+            "wallpaperDir": root.setWallpaperDir,
+            "language": root.setLanguage
+        };
+        let jsonString = JSON.stringify(config, null, 2);
+        
+        // Simplified: Just write the JSON. The inotify watcher catches it automatically.
+        let cmd = "mkdir -p ~/.config/hypr/ && echo '" + jsonString + "' > ~/.config/hypr/settings.json && notify-send 'Quickshell' 'Settings Applied Successfully!'";
+                  
+        Quickshell.execDetached(["bash", "-c", cmd]);
+    }
     Process {
         id: hyprLangReader
         command: ["bash", "-c", "grep -m1 '^ *kb_layout *=' ~/.config/hypr/hyprland.conf | cut -d'=' -f2 | tr -d ' '"]
