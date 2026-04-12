@@ -11,9 +11,9 @@ Variants {
     
     delegate: Component {
         PanelWindow {
-        id: barWindow
+            id: barWindow
 
-        required property var modelData
+            required property var modelData
             
             // Bind this specific bar instance to the dynamically assigned screen
             screen: modelData
@@ -487,6 +487,32 @@ Variants {
 
                     property int moduleHeight: barWindow.barHeight
 
+                    // Help
+                    Rectangle {
+                        property bool isHovered: helpMouse.containsMouse
+                        color: isHovered ? Qt.rgba(mocha.surface1.r, mocha.surface1.g, mocha.surface1.b, 0.95) : Qt.rgba(mocha.base.r, mocha.base.g, mocha.base.b, 0.75)
+                        radius: barWindow.s(14); border.width: 1; border.color: Qt.rgba(mocha.text.r, mocha.text.g, mocha.text.b, isHovered ? 0.15 : 0.05)
+                        Layout.preferredHeight: parent.moduleHeight; Layout.preferredWidth: barWindow.barHeight
+                        
+                        scale: isHovered ? 1.05 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutExpo } }
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰋗"
+                            font.family: "Iosevka Nerd Font"; font.pixelSize: barWindow.s(22)
+                            color: parent.isHovered ? mocha.teal : mocha.text
+                            Behavior on color { ColorAnimation { duration: 200 } }
+                        }
+                        MouseArea {
+                            id: helpMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: Quickshell.execDetached(["bash", "-c", "~/.config/hypr/scripts/qs_manager.sh toggle guide"])
+                        }
+                    }
+
                     // Search 
                     Rectangle {
                         property bool isHovered: searchMouse.containsMouse
@@ -745,6 +771,7 @@ Variants {
                                     spacing: barWindow.width < 1920 ? barWindow.s(4) : barWindow.s(8)
                                     Item { 
                                         width: barWindow.s(24); height: barWindow.s(24); 
+                                        anchors.verticalCenter: parent.verticalCenter
                                         Text { 
                                             anchors.centerIn: parent; text: "󰒮"; font.family: "Iosevka Nerd Font"; font.pixelSize: barWindow.s(26); 
                                             color: prevMouse.containsMouse ? mocha.text : mocha.overlay2; 
@@ -756,6 +783,7 @@ Variants {
                                     }
                                     Item { 
                                         width: barWindow.s(28); height: barWindow.s(28); 
+                                        anchors.verticalCenter: parent.verticalCenter
                                         Text { 
                                             anchors.centerIn: parent; text: barWindow.musicData.status === "Playing" ? "󰏤" : "󰐊"; font.family: "Iosevka Nerd Font"; font.pixelSize: barWindow.s(30); 
                                             color: playMouse.containsMouse ? mocha.green : mocha.text; 
@@ -767,6 +795,7 @@ Variants {
                                     }
                                     Item { 
                                         width: barWindow.s(24); height: barWindow.s(24); 
+                                        anchors.verticalCenter: parent.verticalCenter
                                         Text { 
                                             anchors.centerIn: parent; text: "󰒭"; font.family: "Iosevka Nerd Font"; font.pixelSize: barWindow.s(26); 
                                             color: nextMouse.containsMouse ? mocha.text : mocha.overlay2; 
