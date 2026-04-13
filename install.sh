@@ -3,7 +3,7 @@
 # ==============================================================================
 # Script Versioning & Initialization
 # ==============================================================================
-DOTS_VERSION="1.1.4"
+DOTS_VERSION="1.1.5"
 VERSION_FILE="$HOME/.local/state/imperative-dots-version"
 
 # Prevent the TTY/Console from falling asleep (black screen) during long package builds
@@ -1394,9 +1394,6 @@ fi
 
 # 4. Patch WallpaperPicker.qml dynamically
 if [ -f "$WP_QML" ]; then
-
-    # 2. Fix the focus bug: Strip absolute directory paths and quotes so tryFocus() correctly matches the base filename
-    sed -i "s|let clean = String(name);|let clean = String(name).replace(/['\"]/g, \"\"); clean = clean.substring(clean.lastIndexOf('/') + 1);|g" "$WP_QML"
 
     # 3. Inject --source-color-index 0 to Matugen commands for 4.0 compatibility
     # First, aggressively remove ANY existing instances of "--source-color-index 0" to clean up past duplicate bugs

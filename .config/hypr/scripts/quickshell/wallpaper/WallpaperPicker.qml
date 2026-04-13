@@ -328,9 +328,15 @@ Item {
     function getCleanName(name) {
         if (!name) return "";
         let clean = String(name);
+        
+        // Strip out the folder path if an absolute path was passed
+        let lastSlashIndex = clean.lastIndexOf("/");
+        if (lastSlashIndex !== -1) {
+            clean = clean.substring(lastSlashIndex + 1);
+        }
+        
         return clean.startsWith("000_") ? clean.substring(4) : clean;
     }
-
     function isDownloaded(name) {
         if (!name) return false;
         for (let i = 0; i < srcModel.count; i++) {
@@ -388,11 +394,15 @@ Item {
                 }
             }
 
-            let finalIndex = foundIndex !== -1 ? foundIndex : 0;
-            window.executeFocusRestore(finalIndex, false, true);
+            // If we found it, focus immediately. 
+            // Otherwise, ONLY fallback to 0 if the folder model has completely finished loading.
+            if (foundIndex !== -1) {
+                window.executeFocusRestore(foundIndex, false, true);
+            } else if (localFolderModel.status === FolderListModel.Ready) {
+                window.executeFocusRestore(0, false, true);
+            }
         }
     }
-    
     function trySearchFocus() {
         if (window.searchIndexRestored || searchProxyModel.count === 0) return;
 
@@ -816,6 +826,11 @@ Item {
         } else if (window.jumpToLastOnFilterChange && lastValidIndex !== -1) {
             indexToFocus = lastValidIndex;
         } else if (firstValidIndex !== -1) {
+            // Prevent premature fallback to the first item if the model is still incrementally loading
+            if (targetModel === localProxyModel && localFolderModel.status !== FolderListModel.Ready) {
+                window.updateVisibleCount();
+                return; 
+            }
             indexToFocus = firstValidIndex;
         }
 
