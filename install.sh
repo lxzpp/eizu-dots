@@ -813,12 +813,13 @@ prompt_optional_features_menu() {
             --pointer=">" \
             --header=" SPACE or ENTER to toggle. Select Proceed when ready. ")
 
+        # FIXED: Added the dot and matched exactly against the list prefix
         case "$choice" in
-            *"1"*) OPT_SDDM=$([ "$OPT_SDDM" = true ] && echo false || echo true) ;;
-            *"2"*) OPT_NVIM=$([ "$OPT_NVIM" = true ] && echo false || echo true) ;;
-            *"3"*) OPT_ZSH=$([ "$OPT_ZSH" = true ] && echo false || echo true) ;;
-            *"4"*) OPT_WALLPAPERS=$([ "$OPT_WALLPAPERS" = true ] && echo false || echo true) ;;
-            *"5"*) 
+            *"1."*) OPT_SDDM=$([ "$OPT_SDDM" = true ] && echo false || echo true) ;;
+            *"2."*) OPT_NVIM=$([ "$OPT_NVIM" = true ] && echo false || echo true) ;;
+            *"3."*) OPT_ZSH=$([ "$OPT_ZSH" = true ] && echo false || echo true) ;;
+            *"4."*) OPT_WALLPAPERS=$([ "$OPT_WALLPAPERS" = true ] && echo false || echo true) ;;
+            *"5."*) 
                 # Apply chosen toggles to installation logic
                 if [ "$OPT_SDDM" = true ]; then
                     if [[ -z "$CURRENT_DM" ]]; then
@@ -844,7 +845,7 @@ prompt_optional_features_menu() {
                 fi
                 return 0 # Return success to start the installation process
                 ;;
-            *"6"*) return 1 ;; # Return failure code to jump back to main menu
+            *"6."*) return 1 ;; # Return failure code to jump back to main menu
             *) ;;
         esac
     done
@@ -904,14 +905,15 @@ while true; do
         --pointer=">" \
         --header=" Navigate with ARROWS. Select with ENTER. ")
 
+    # FIXED: Added the dot and matched exactly against the list prefix
     case "$MENU_OPTION" in
-        *"1"*) manage_packages ;;
-        *"2"*) show_overview ;;
-        *"3"*) set_weather_api ;;
-        *"4"*) manage_drivers ;;
-        *"5"*) manage_keyboard ;;
-        *"6"*) manage_telemetry ;;
-        *"7"*) 
+        *"1."*) manage_packages ;;
+        *"2."*) show_overview ;;
+        *"3."*) set_weather_api ;;
+        *"4."*) manage_drivers ;;
+        *"5."*) manage_keyboard ;;
+        *"6."*) manage_telemetry ;;
+        *"7."*) 
             if [ "$VISITED_KEYBOARD" = false ]; then
                 echo -e "\n${C_RED}[!] You must configure your Keyboard Layouts in the submenu before starting.${RESET}"
                 sleep 2.5
@@ -923,7 +925,7 @@ while true; do
                 continue
             fi
             ;;
-        *"8"*) clear; exit 0 ;;
+        *"8."*) clear; exit 0 ;;
         *) exit 0 ;;
     esac
 done
