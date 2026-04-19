@@ -1,0 +1,7 @@
+add_newline = false
+
+format = "◀ $cmd_duration ○ "
+
+[cmd_duration]
+min_time = 0
+format = "$duration"

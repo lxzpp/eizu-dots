@@ -1087,7 +1087,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: root.s(1)
                                 Repeater {
-                                    model: [ { l: "i", c: root.red }, { l: "l", c: root.peach }, { l: "y", c: root.yellow }, { l: "a", c: root.green }, { l: "m", c: root.sapphire }, { l: "i", c: root.blue }, { l: "r", c: root.mauve }, { l: "o", c: root.pink } ]
+                                    model: [ { l: "A", c: root.red }, { l: "y", c: root.peach }, { l: "e", c: root.yellow }, { l: "z", c: root.green }, { l: "a", c: root.sapphire }, { l: " ", c: root.text }, { l: "S", c: root.blue }, { l: "I", c: root.mauve }, { l: "v", c: root.pink }, { l: "y", c: root.red } ]
                                     Text { 
                                         text: modelData.l
                                         font.family: "JetBrains Mono"
