@@ -321,7 +321,7 @@ draw_header() {
 ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝╚═╝  ╚═══╝
 EOF
     printf "${RESET}\n"
-
+#
     # OSC 8 Escape Sequences for Clickable Hyperlinks
     local OSC8_GH="\e]8;;https://github.com/lxzpp/eizu-dots.git\a"
     local OSC8_TW="\e]8;;https://twitter.com/ilyamirox\a"
