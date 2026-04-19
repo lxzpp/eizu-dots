@@ -323,14 +323,14 @@ EOF
     printf "${RESET}\n"
 
     # OSC 8 Escape Sequences for Clickable Hyperlinks
-    local OSC8_GH="\e]8;;https://github.com/ilyamiro/imperative-dots.git\a"
+    local OSC8_GH="\e]8;;https://github.com/lxzpp/eizu-dots.git\a"
     local OSC8_TW="\e]8;;https://twitter.com/ilyamirox\a"
     local OSC8_RD="\e]8;;https://reddit.com/r/ilyamiro1\a"
     local OSC8_KF="\e]8;;https://ko-fi.com/ilyamiro\a"
     local OSC8_END="\e]8;;\a"
 
     printf "\033[K${C_BLUE} -----------------------------------------------------------------${RESET}\n"
-    printf "\033[K${BOLD}${C_GREEN} GitHub:${RESET}  ${OSC8_GH}https://github.com/ilyamiro/imperative-dots.git${OSC8_END}\n"
+    printf "\033[K${BOLD}${C_GREEN} GitHub:${RESET}  ${OSC8_GH}https://github.com/lxzpp/eizu-dots.git${OSC8_END}\n"
     printf "\033[K${BOLD}${C_CYAN} Twitter:${RESET} ${OSC8_TW}@ilyamirox${OSC8_END}  |  ${BOLD}${C_RED}Reddit:${RESET} ${OSC8_RD}r/ilyamiro1${OSC8_END}\n"
     printf "\033[K${BOLD}${C_MAGENTA} Donate:${RESET}  ${OSC8_KF}Donate on Ko-fi (Help the project!)${OSC8_END}\n"
     printf "\033[K${C_BLUE} -----------------------------------------------------------------${RESET}\n"
@@ -1146,7 +1146,7 @@ fi
 
 # --- 3. Repository Cloning & Wallpapers ---
 echo -e "\n${C_CYAN}[ INFO ]${RESET} Setting up Dotfiles Repository..."
-REPO_URL="https://github.com/ilyamiro/imperative-dots.git"
+REPO_URL="https://github.com/lxzpp/eizu-dots.git"
 CLONE_DIR="$HOME/.hyprland-dots"
 
 # Determine Git versioning states for partial updates

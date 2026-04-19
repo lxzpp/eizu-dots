@@ -14,7 +14,7 @@ while true; do
     LOCAL_VERSION=${LOCAL_VERSION:-"Unknown"}
     
     # Fetch remote version
-    REMOTE_VERSION=$(curl -m 5 -s https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh | grep '^DOTS_VERSION=' | cut -d'"' -f2)
+    REMOTE_VERSION=$(curl -m 5 -s https://raw.githubusercontent.com/lxzpp/eizu-dots/master/install.sh | grep '^DOTS_VERSION=' | cut -d'"' -f2)
 
     # Check if we got valid responses and they don't match
     if [[ -n "$REMOTE_VERSION" && "$LOCAL_VERSION" != "Unknown" && "$LOCAL_VERSION" != "$REMOTE_VERSION" ]]; then
