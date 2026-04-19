@@ -3,5 +3,5 @@
 >
 > ## Installer
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/lxzpp/eizu-dots/master/install.sh)"
 ```
