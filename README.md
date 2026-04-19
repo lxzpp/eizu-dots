@@ -1,2 +1,7 @@
 > [!WARNING]
-> No installer for me ig
+> Ok pog
+>
+> ## Installer
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/lxzpp/eizu-dots/master/install.sh)"
+```
