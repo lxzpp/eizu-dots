@@ -306,7 +306,7 @@ EOF
 send_telemetry "init"
 
 # ==============================================================================
-# Interactive TUI Functions
+# Interactive TUI Functions | Ayeza tuskined
 # ==============================================================================
 
 draw_header() {
@@ -387,8 +387,8 @@ manage_packages() {
 manage_drivers() {
     while true; do
         draw_header
-        echo -e "${BOLD}${C_CYAN}=== Hardware Driver Configuration ===${RESET}"
-        echo -e "${BOLD}${C_RED}=================== EXPERIMENTAL WARNING ===================${RESET}"
+        echo -e "${BOLD}${C_CYAN}=== Hardware Driver Configurationn ===${RESET}"
+        echo -e "${BOLD}${C_RED}===================== EXPERIMENTAL WARNING =====================${RESET}"
         echo -e "${C_RED}This automated driver installer is highly experimental and${RESET}"
         echo -e "${C_RED}can be unreliable across different kernel/distro variations.${RESET}"
         echo -e "${C_RED}It is strongly recommended to SKIP this and install your${RESET}"
@@ -596,6 +596,13 @@ manage_keyboard() {
             selected_names+=("$name")
         fi
     done
+
+
+   #  if [ "$duplicate" = false ]; then
+   #         selected_codes+=("$code")
+  #          selected_names+=("$name")
+  #      fi
+ #   done#
 
     while true; do
         draw_header
